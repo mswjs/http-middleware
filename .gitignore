@@ -1,0 +1,4 @@
+node_modules
+lib
+*-error.log
+*.DS_Store
