@@ -37,7 +37,7 @@ See [examples/custom-server.ts](examples/custom-server.ts) for more.
 
 ### `createServer(handlers: RequestHandler[])`
 
-Creates a new Express middleware you can add to an existing Express server that will respond to any request that you have mocked in your mock handlers.
+Creates a new Express server that will respond to any request that you have mocked in your mock handlers.
 
 ```ts
 import { createServer } from '@mswjs/http-middleware'
