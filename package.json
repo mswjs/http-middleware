@@ -13,7 +13,8 @@
     "build": "yarn clean && tsc",
     "example-build": "yarn build && cd examples && rimraf ./lib && tsc && cp -R public lib/examples/public",
     "example:basic": "yarn example-build && node examples/lib/examples/basic-server.js",
-    "example:custom": "yarn example-build && node examples/lib/examples/custom-server.js"
+    "example:custom": "yarn example-build && node examples/lib/examples/custom-server.js",
+    "prepare": "husky install"
   },
   "lint-staged": {
     "*.ts": [
@@ -40,6 +41,7 @@
     "eslint": "^7.31.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^3.4.0",
+    "husky": "^7.0.1",
     "jest": "^27.0.6",
     "lint-staged": "^11.0.1",
     "prettier": "^2.3.2",
