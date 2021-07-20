@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="">
+
+<head>
+  <meta charset="utf-8">
+  <title>MSW Example</title>
+</head>
+
+<body>
+  <p>Example mock server</p>
+
+  <button id="login">Login</button>
+
+  <pre id="response" style="margin-top: 50px;"></pre>
+
+  <script>
+    var username = 'jsmith';
+    var loggedIn = false;
+    document.getElementById('login').addEventListener('click', (e) => {
+      e.target.disabled = true;
+      fetch('/' + (loggedIn ? 'logout' : 'login'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username })
+      })
+        .then(response => response.json())
+        .then(data => {
+          loggedIn = !loggedIn;
+          e.target.disabled = false;
+          e.target.innerText = loggedIn ? 'Logout' : 'Login';
+          document.getElementById('response').innerText = JSON.stringify(data, null, 2);
+        })
+    });
+  </script>
+</body>
+
+</html>

@@ -1,5 +1,5 @@
-import { middleware } from '../src'
+import { createMiddleware } from '../src'
 
-it('a test example', () => {
-  expect(middleware).toBeDefined()
+it('exports the correct function', () => {
+  expect(createMiddleware).toBeDefined()
 })

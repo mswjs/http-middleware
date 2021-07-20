@@ -2,8 +2,10 @@
   "compilerOptions": {
     "outDir": "lib",
     "declaration": true,
-    "declarationDir": "lib"
+    "declarationDir": "lib",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true
   },
   "include": ["src/**/*.ts"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "examples"]
 }
