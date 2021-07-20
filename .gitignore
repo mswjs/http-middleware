@@ -2,3 +2,6 @@ node_modules
 lib
 *-error.log
 *.DS_Store
+./package-lock.json
+.vscode
+.husky/_
