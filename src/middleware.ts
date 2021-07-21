@@ -1,56 +1,66 @@
-import { Headers, flattenHeadersList, headersToList } from 'headers-utils'
-import { RequestHandler, MockedRequest } from 'msw'
+import { EventEmitter } from 'events'
+import { Headers } from 'headers-utils'
 import { RequestHandler as ExpressMiddleware } from 'express'
-import { getResponse } from './mswGetResponse'
+import { RequestHandler, handleRequest, parseIsomorphicRequest } from 'msw'
 
-const delay = (ms: number) =>
-  new Promise<void>((resolve) => {
-    setTimeout(() => {
-      resolve()
-    }, ms)
-  })
+const emitter = new EventEmitter()
 
-export function createMiddleware(handlers: RequestHandler[]) {
-  const mswMiddleware: ExpressMiddleware = async (req, res, next) => {
-    const headers = new Headers()
-    for (let i = 0; i < req.rawHeaders.length; i += 2) {
-      headers.set(req.rawHeaders[i], req.rawHeaders[i + 1])
-    }
-    const mockedReq: MockedRequest = {
-      id: Math.random().toString(36).substr(2, 9),
-      url: new URL(req.originalUrl, req.protocol + '://' + req.get('host')),
-      method: req.method.toUpperCase(),
-      headers,
-      cookies: req.cookies, // Only works if cookie-parser middleware is present
-      mode: 'same-origin',
-      keepalive: false,
-      cache: 'default',
-      destination: '',
-      integrity: '',
-      credentials: 'same-origin',
-      redirect: 'follow',
-      referrer: req.header('referer') || '',
-      referrerPolicy: '',
+export function createMiddleware(
+  ...handlers: RequestHandler[]
+): ExpressMiddleware {
+  return async (req, res, next) => {
+    const serverOrigin = `${req.protocol}://${req.get('host')}`
+    const mockedRequest = parseIsomorphicRequest({
+      id: '',
+      method: req.method,
+      url: new URL(req.url, serverOrigin),
+      headers: new Headers(req.headers as HeadersInit),
       body: req.body,
-      bodyUsed: !!req.body,
-    }
-    const { handler, response } = await getResponse(mockedReq, handlers)
-    if (handler && response) {
-      // MSW Matched Request
-      res.status(response.status)
-      flattenHeadersList(headersToList(response.headers)).forEach(
-        ([key, value]) => {
-          res.setHeader(key, value)
-        },
-      )
-      if (response.delay) {
-        await delay(response.delay)
+    })
+
+    /**
+     * @note Prepend the server's origin to each relative request handler URL.
+     *
+     * Relative URL in request handlers are usually used in JSDOM where they are
+     * rebased by MSW against the current "location" that JSDOM polyfills.
+     * In Node.js, relative request URLs is no-op as there's nothing to be relative to.
+     *
+     * @fixme Mutating handlers is not okay.
+     */
+    handlers.forEach((handler) => {
+      if ('mask' in handler.info) {
+        const mask = handler.info.mask as string
+
+        handler.info.mask = mask.startsWith('/')
+          ? new URL(handler.info.mask, serverOrigin).toString()
+          : mask
       }
-      res.send(response.body)
-    } else {
-      // No MSW match - move along
-      next()
-    }
+    })
+
+    await handleRequest(
+      mockedRequest,
+      handlers,
+      {
+        onUnhandledRequest: () => null,
+      },
+      emitter,
+      {
+        onMockedResponseSent(mockedResponse) {
+          const { status, statusText, headers, body } = mockedResponse
+
+          res.statusCode = status
+          res.statusMessage = statusText
+
+          headers.forEach((value, name) => {
+            res.setHeader(name, value)
+          })
+
+          res.send(body)
+        },
+        onBypassResponse() {
+          next()
+        },
+      },
+    )
   }
-  return mswMiddleware
 }
