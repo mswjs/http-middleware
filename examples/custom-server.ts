@@ -1,14 +1,16 @@
 import express from 'express'
 import path from 'path'
 import { createMiddleware } from '../src'
-import handlers from './mocks'
+import { handlers } from './mocks'
 
 const app = express()
+
 app.use(express.static(path.join(__dirname, '/public')))
 app.use(express.json())
 
-const mswMiddleware = createMiddleware(handlers)
-app.use(mswMiddleware)
+// Apply the middleware to handle incoming requests
+// and resolve them against the matching request handlers.
+app.use(createMiddleware(...handlers))
 
 app.use((_req, res) => {
   res.status(404).send({ error: 'Mock not found' })
