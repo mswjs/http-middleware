@@ -79,13 +79,13 @@ Establishes a standalone Express server that uses the given request handlers to 
 import { rest } from 'msw'
 import { createServer } from '@mswjs/http-middleware'
 
-const server = createServer(
+const httpServer = createServer(
   rest.get('/user', (req, res, ctx) => {
     return res(ctx.json({ firstName: 'John' }))
   }),
 )
 
-server.listen(9090)
+httpServer.listen(9090)
 ```
 
 Making a `GET http://localhost:9090/user` request returns the following response:
