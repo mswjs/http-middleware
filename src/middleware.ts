@@ -1,13 +1,49 @@
 import { EventEmitter } from 'events'
 import { Headers } from 'headers-utils'
 import { RequestHandler as ExpressMiddleware } from 'express'
-import { RequestHandler, handleRequest, parseIsomorphicRequest } from 'msw'
+import {
+  RequestHandler,
+  handleRequest,
+  parseIsomorphicRequest,
+  RestHandler,
+} from 'msw'
+import { Mask } from 'msw/lib/types/setupWorker/glossary'
 
 const emitter = new EventEmitter()
 
 export function createMiddleware(
   ...handlers: RequestHandler[]
 ): ExpressMiddleware {
+  // This will get overwritten on a per-request basis
+  let getServerRelativeMask = (mask: Mask) => mask
+
+  /**
+   * @note Prepend the server's origin to each relative request handler URL.
+   *
+   * Relative URL in request handlers are usually used in JSDOM where they are
+   * rebased by MSW against the current "location" that JSDOM polyfills.
+   * In Node.js, relative request URLs is no-op as there's nothing to be relative to.
+   */
+  const serverRelativeHandlers = handlers.map((handler) => {
+    if ('mask' in handler.info) {
+      return new Proxy(handler as RestHandler, {
+        get(target: RestHandler, prop: keyof RestHandler) {
+          if (prop === 'info') {
+            const { info } = target
+            return {
+              ...info,
+              get mask() {
+                return getServerRelativeMask(info.mask)
+              },
+            }
+          }
+          return target[prop]
+        },
+      })
+    }
+    return handler
+  })
+
   return async (req, res, next) => {
     const serverOrigin = `${req.protocol}://${req.get('host')}`
     const mockedRequest = parseIsomorphicRequest({
@@ -18,28 +54,19 @@ export function createMiddleware(
       body: req.body,
     })
 
-    /**
-     * @note Prepend the server's origin to each relative request handler URL.
-     *
-     * Relative URL in request handlers are usually used in JSDOM where they are
-     * rebased by MSW against the current "location" that JSDOM polyfills.
-     * In Node.js, relative request URLs is no-op as there's nothing to be relative to.
-     *
-     * @fixme Mutating handlers is not okay.
-     */
-    handlers.forEach((handler) => {
-      if ('mask' in handler.info) {
-        const mask = handler.info.mask as string
-
-        handler.info.mask = mask.startsWith('/')
-          ? new URL(handler.info.mask, serverOrigin).toString()
-          : mask
+    getServerRelativeMask = (mask) => {
+      if (mask instanceof RegExp) {
+        // TODO merge the regex somehow? maybe it doesn't matter?
+        return mask
       }
-    })
+      return mask.startsWith('/')
+        ? new URL(mask, serverOrigin).toString()
+        : mask
+    }
 
     await handleRequest(
       mockedRequest,
-      handlers,
+      serverRelativeHandlers,
       {
         onUnhandledRequest: () => null,
       },
