@@ -1,50 +1,125 @@
 # `@mswjs/http-middleware`
 
-Run your [Mock Service Worker](https://github.com/mswjs/msw) mocks in a separate node server.
+Spawn an [Express](https://expressjs.com) server from your [Mock Service Worker](https://github.com/mswjs/msw) request handlers or apply them to an existing server using a middleware.
 
-## When and why this may be helpful
+## When to use this?
 
-msw itself provides an easy and convenient way (via a service worker) to run your mocks without any extra server process. This works great for 99% of cases when you want to test your web app in the browser.
+You should always prefer Mock Service Worker for API mocking because it can meet most of your requirements without having to spawn and maintain an actual HTTP server. Please refer to the [Getting started](https://mswjs.io/docs/getting-started/install) tutorial to integrate next-generation API mocking into your application.
 
-However, there are a few possible cases where you *may* want to run your mocks via a separate server process (instead of via a service worker). For example: if you need to `curl` your mocks directly, when using [Cypress](https://www.cypress.io/) (and it's methods like `cy.intercept` which not always work seamlessly with service workers) for E2E testing, etc.
+There are, however, use cases when this extension can be applicable:
 
-This library acts as an extension of msw for these cases - allowing you to re-use your same mock definitions in a totally different Node.js runtime environment.
+- If you wish to `curl` your mock definitions locally;
+- When prototyping a Node.js backend implementation;
+- When integrating API mocking in a complex application architecture (i.e. for dockerized applications).
 
 ## Getting started
 
-```bash
-npm install @mswjs/http-middleware
+### Install
+
+```sh
+$ npm install @mswjs/http-middleware
+# or
+$ yarn add @mswjs/http-middleware
+```
+
+### Declare request handlers
+
+```js
+// src/mocks/handlers.js
+import { rest, graphql } from 'msw'
+
+export const handlers = [
+  rest.post('/user', (req, res, ctx) => {
+    return res(ctx.json({ firstName: 'John' }))
+  }),
+  graphql.query('GetUser', (req, res, ctx) => {
+    return res(
+      ctx.data({
+        user: {
+          firstName: 'John',
+        },
+      }),
+    )
+  }),
+]
+```
+
+> Learn more about writing [request handlers](https://mswjs.io/docs/getting-started/mocks).
+
+### Integrate
+
+#### A. Spawn a standalone server
+
+```js
+import { createServer } from '@mswjs/http-middleware'
+import { handlers } from './handlers'
+
+const httpServer = createServer(...handlers)
+
+httpServer.listen(9090)
+```
+
+#### B. Apply as a middleware
+
+```js
+import { createMiddleware } from '@mswjs/http-middleware'
+import app from './app'
+import { handlers } from './handlers'
+
+app.use(createMiddleware(...handlers))
 ```
 
 ## API
 
-### `createMiddleware(handlers: RequestHandler[])`
+### `createServer(...handlers: RequestHandler[])`
 
-Creates a new Express middleware you can add to an existing Express server that will respond to any request that you have mocked in your mock handlers.
+Establishes a standalone Express server that uses the given request handlers to process all incoming requests.
 
 ```ts
+import { rest } from 'msw'
+import { createServer } from '@mswjs/http-middleware'
+
+const server = createServer(
+  rest.get('/user', (req, res, ctx) => {
+    return res(ctx.json({ firstName: 'John' }))
+  }),
+)
+
+server.listen(9090)
+```
+
+Making a `GET http://localhost:9090/user` request returns the following response:
+
+```json
+200 OK
+Content-Type: application/json
+
+{
+  "firstName": "John"
+}
+```
+
+### `createMiddleware(...handlers: RequestHandler[])`
+
+Creates an Express middleware function that uses the given request handlers to process all incoming requests.
+
+```ts
+import { rest } from 'msw'
 import { createMiddleware } from '@mswjs/http-middleware'
-import handlers from './mocks'
 
 const app = express()
-// configure your server..
 
-const mswMiddleware = createMiddleware(handlers)
-app.use(mswMiddleware)
+app.use(
+  createMiddleware(
+    rest.get('/user', (req, res, ctx) => {
+      return res(ctx.json({ firstName: 'John' }))
+    }),
+  ),
+)
+
+app.use(9090)
 ```
 
-See [examples/custom-server.ts](examples/custom-server.ts) for more.
+## Mentions
 
-### `createServer(handlers: RequestHandler[])`
-
-Creates a new Express server that will respond to any request that you have mocked in your mock handlers.
-
-```ts
-import { createServer } from '@mswjs/http-middleware'
-import handlers from './mocks'
-
-const server = createServer(handlers)
-server.listen(9090, () => console.log('Mock server ready at http://localhost:9090'))
-```
-
-See [examples/basic-server.ts](examples/basic-server.ts) for more.
+- [David Idol](https://github.com/idolize), original implementation.
