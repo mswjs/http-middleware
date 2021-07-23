@@ -26,9 +26,15 @@ beforeAll(async () => {
   })
 
   server.listen()
+  jest.spyOn(global.console, 'warn').mockImplementation()
+})
+
+afterEach(() => {
+  jest.resetAllMocks()
 })
 
 afterAll(async () => {
+  jest.restoreAllMocks()
   server.close()
   await httpServer.close()
 })
@@ -38,6 +44,25 @@ it('returns the mocked response from the middleware', async () => {
   const json = await res.json()
 
   expect(json).toEqual<UserResponse>({ firstName: 'John' })
+  expect(console.warn).toHaveBeenCalledTimes(3)
+
+  // MSW should still prints warnings because matching in a JSDOM context
+  // wasn't successful. This isn't a typical use case, as you won't be
+  // combining a running test with an HTTP server and a middleware.
+  const warnings = (console.warn as jest.Mock).mock.calls.map((args) => args[0])
+  expect(warnings).toEqual(
+    expect.arrayContaining([
+      expect.stringMatching(
+        new RegExp(`GET ${httpServer.http.makeUrl('/user')}`),
+      ),
+      expect.stringMatching(
+        new RegExp(`OPTIONS ${httpServer.http.makeUrl('/user')}`),
+      ),
+      expect.stringMatching(
+        new RegExp(`GET ${httpServer.http.makeUrl('/user')}`),
+      ),
+    ]),
+  )
 })
 
 it('returns the mocked response from JSDOM', async () => {
@@ -45,4 +70,5 @@ it('returns the mocked response from JSDOM', async () => {
   const json = await res.json()
 
   expect(json).toEqual<UserResponse>({ firstName: 'John' })
+  expect(console.warn).not.toHaveBeenCalled()
 })
