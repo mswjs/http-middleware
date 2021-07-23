@@ -14,7 +14,8 @@
     "example-build": "yarn build && cd examples && rimraf ./lib && tsc && cp -R public lib/examples/public",
     "example:basic": "yarn example-build && node examples/lib/examples/basic-server.js",
     "example:custom": "yarn example-build && node examples/lib/examples/custom-server.js",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "prepublishOnly": "yarn lint && yarn test && yarn build"
   },
   "lint-staged": {
     "*.ts": [
