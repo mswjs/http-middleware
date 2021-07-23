@@ -3,7 +3,16 @@
   "version": "0.0.0",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
-  "author": "Artem Zakharchenko <kettanaito@gmail.com>",
+  "author": {
+    "name": "Artem Zakharchenko",
+    "url": "https://github.com/kettanaito"
+  },
+  "contributors": [
+    {
+      "name": "David Idol",
+      "url": "https://github.com/idolize"
+    }
+  ],
   "license": "MIT",
   "scripts": {
     "start": "tsc -w",
