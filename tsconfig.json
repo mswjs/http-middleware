@@ -2,6 +2,7 @@
   "compilerOptions": {
     "strict": true,
     "target": "es6",
+    "module": "CommonJS",
     "moduleResolution": "node",
     "outDir": "./lib",
     "declaration": true,
