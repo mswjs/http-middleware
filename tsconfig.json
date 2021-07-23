@@ -1,6 +1,8 @@
 {
   "compilerOptions": {
     "strict": true,
+    "target": "es6",
+    "moduleResolution": "node",
     "outDir": "./lib",
     "declaration": true,
     "esModuleInterop": true,
