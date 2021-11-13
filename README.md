@@ -90,7 +90,7 @@ httpServer.listen(9090)
 
 Making a `GET http://localhost:9090/user` request returns the following response:
 
-```json
+```sh
 200 OK
 Content-Type: application/json
 
