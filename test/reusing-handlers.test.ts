@@ -3,7 +3,7 @@
  */
 import 'whatwg-fetch'
 import { createServer, ServerApi } from '@open-draft/test-server'
-import { rest } from 'msw'
+import { PathParams, rest } from 'msw'
 import { setupServer } from 'msw/node'
 import { createMiddleware } from '../src'
 
@@ -12,7 +12,7 @@ interface UserResponse {
 }
 
 const handlers = [
-  rest.get<any, UserResponse>('/user', (req, res, ctx) => {
+  rest.get<any, PathParams, UserResponse>('/user', (req, res, ctx) => {
     return res(ctx.json({ firstName: 'John' }))
   }),
 ]
@@ -44,7 +44,7 @@ it('returns the mocked response from the middleware', async () => {
   const json = await res.json()
 
   expect(json).toEqual<UserResponse>({ firstName: 'John' })
-  expect(console.warn).toHaveBeenCalledTimes(3)
+  expect(console.warn).toHaveBeenCalledTimes(2)
 
   // MSW should still prints warnings because matching in a JSDOM context
   // wasn't successful. This isn't a typical use case, as you won't be
@@ -54,9 +54,6 @@ it('returns the mocked response from the middleware', async () => {
     expect.arrayContaining([
       expect.stringMatching(
         new RegExp(`GET ${httpServer.http.makeUrl('/user')}`),
-      ),
-      expect.stringMatching(
-        new RegExp(`OPTIONS ${httpServer.http.makeUrl('/user')}`),
       ),
       expect.stringMatching(
         new RegExp(`GET ${httpServer.http.makeUrl('/user')}`),
