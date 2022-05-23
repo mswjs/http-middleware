@@ -47,7 +47,7 @@ export function createMiddleware(
 
           res.send(body)
         },
-        onBypassResponse() {
+        onPassthroughResponse() {
           next()
         },
       },
