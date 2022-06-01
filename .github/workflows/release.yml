@@ -1,0 +1,26 @@
+name: release
+
+on:
+  schedule:
+    - cron: '0 23 * * *'
+
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: actions/checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GH_ADMIN_TOKEN }}
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: release
+        run: yarn release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_ADMIN_TOKEN }}
+          NPM_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
