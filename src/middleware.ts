@@ -2,6 +2,7 @@ import { StrictEventEmitter } from 'strict-event-emitter'
 import { Headers } from 'headers-polyfill'
 import { RequestHandler as ExpressMiddleware } from 'express'
 import { RequestHandler, handleRequest, MockedRequest } from 'msw'
+import { encodeBuffer } from '@mswjs/interceptors'
 
 const emitter = new StrictEventEmitter()
 
@@ -18,7 +19,7 @@ export function createMiddleware(
         method: req.method,
         headers: new Headers(req.headers as HeadersInit),
         credentials: 'omit',
-        body: req.body,
+        body: encodeBuffer(req.body),
       },
     )
 
