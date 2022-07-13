@@ -57,7 +57,7 @@
     "husky": "^7.0.4",
     "jest": "^27.3.1",
     "lint-staged": "^11.2.6",
-    "msw": "^0.40.2",
+    "msw": "^0.44.0",
     "node-fetch": "^2.6.1",
     "prettier": "^2.4.1",
     "rimraf": "^3.0.2",
@@ -67,6 +67,6 @@
   },
   "peerDependencies": {
     "headers-polyfill": "^3.0.4",
-    "msw": ">=0.40.2"
+    "msw": ">=0.44.0"
   }
 }
