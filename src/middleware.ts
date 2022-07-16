@@ -1,24 +1,27 @@
-import { EventEmitter } from 'events'
+import { StrictEventEmitter } from 'strict-event-emitter'
 import { Headers } from 'headers-polyfill'
 import { RequestHandler as ExpressMiddleware } from 'express'
-import { RequestHandler, handleRequest, parseIsomorphicRequest } from 'msw'
+import { RequestHandler, handleRequest, MockedRequest } from 'msw'
+import { encodeBuffer } from '@mswjs/interceptors'
 
-const emitter = new EventEmitter()
+const emitter = new StrictEventEmitter()
 
 export function createMiddleware(
   ...handlers: RequestHandler[]
 ): ExpressMiddleware {
   return async (req, res, next) => {
     const serverOrigin = `${req.protocol}://${req.get('host')}`
-    const mockedRequest = parseIsomorphicRequest({
-      id: '',
-      method: req.method,
+
+    const mockedRequest = new MockedRequest(
       // Treat all relative URLs as the ones coming from the server.
-      url: new URL(req.url, serverOrigin),
-      headers: new Headers(req.headers as HeadersInit),
-      credentials: 'omit',
-      body: req.body,
-    })
+      new URL(req.url, serverOrigin),
+      {
+        method: req.method,
+        headers: new Headers(req.headers as HeadersInit),
+        credentials: 'omit',
+        body: encodeBuffer(req.body),
+      },
+    )
 
     await handleRequest(
       mockedRequest,
