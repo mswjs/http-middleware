@@ -12,6 +12,12 @@ export function createMiddleware(
   return async (req, res, next) => {
     const serverOrigin = `${req.protocol}://${req.get('host')}`
 
+    // Ensure the request body input passed to the MockedRequest
+    // is always a string. Custom middleware like "express.json()"
+    // may coerce "req.body" to be an Object.
+    const requestBody =
+      typeof req.body === 'string' ? req.body : JSON.stringify(req.body)
+
     const mockedRequest = new MockedRequest(
       // Treat all relative URLs as the ones coming from the server.
       new URL(req.url, serverOrigin),
@@ -19,7 +25,7 @@ export function createMiddleware(
         method: req.method,
         headers: new Headers(req.headers as HeadersInit),
         credentials: 'omit',
-        body: encodeBuffer(req.body),
+        body: encodeBuffer(requestBody),
       },
     )
 
