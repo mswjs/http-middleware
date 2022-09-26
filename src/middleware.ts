@@ -44,7 +44,7 @@ export function createMiddleware(
            */
           baseUrl: serverOrigin,
         },
-        onMockedResponseSent(mockedResponse) {
+        onMockedResponse(mockedResponse) {
           const { status, statusText, headers, body } = mockedResponse
 
           res.statusCode = status
