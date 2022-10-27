@@ -14,8 +14,8 @@ export function createMiddleware(
 
     // Ensure the request body input passed to the MockedRequest
     // is always a buffer. Custom middleware like "express.json()"
-    // may alread have parsed "req.body". If no middleware is used,
-    // respect the original buffer
+    // may alread have parsed "req.body" into a JSON object,
+    // but "express.raw()" would create a buffer.
     const requestBody =
       req.body instanceof Uint8Array
         ? req.body
