@@ -54,9 +54,12 @@ export function createMiddleware(
             res.setHeader(name, value)
           })
 
-          setTimeout(() => {
-            res.send(body)
-          }, delay || 0)
+          if (delay) {
+            setTimeout(() => res.send(body), delay)
+            return
+          }
+
+          res.send(body)
         },
         onPassthroughResponse() {
           next()
