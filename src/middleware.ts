@@ -45,7 +45,7 @@ export function createMiddleware(
           baseUrl: serverOrigin,
         },
         onMockedResponse(mockedResponse) {
-          const { status, statusText, headers, body } = mockedResponse
+          const { status, statusText, headers, body, delay } = mockedResponse
 
           res.statusCode = status
           res.statusMessage = statusText
@@ -53,6 +53,11 @@ export function createMiddleware(
           headers.forEach((value, name) => {
             res.setHeader(name, value)
           })
+
+          if (delay) {
+            setTimeout(() => res.send(body), delay)
+            return
+          }
 
           res.send(body)
         },
