@@ -2,7 +2,6 @@
  * @jest-environment node
  */
 import fetch from 'node-fetch'
-import express from 'express'
 import { ServerApi, createServer } from '@open-draft/test-server'
 import { RequestHandler, rest } from 'msw'
 import { createMiddleware } from '../src'
@@ -17,11 +16,9 @@ const handlers: RequestHandler[] = [
 ]
 
 beforeAll(async () => {
+  // createServer automatically applies bodyParser.json()
   server = await createServer((app) => {
     app.use(createMiddleware(...handlers))
-
-    // Apply a request body JSON middleware.
-    app.use(express.json())
   })
 })
 
