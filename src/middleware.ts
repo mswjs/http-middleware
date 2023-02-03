@@ -1,10 +1,10 @@
-import { StrictEventEmitter } from 'strict-event-emitter'
+import { Emitter } from 'strict-event-emitter'
 import { Headers } from 'headers-polyfill'
 import { RequestHandler as ExpressMiddleware } from 'express'
 import { RequestHandler, handleRequest, MockedRequest } from 'msw'
 import { encodeBuffer } from '@mswjs/interceptors'
 
-const emitter = new StrictEventEmitter()
+const emitter = new Emitter()
 
 export function createMiddleware(
   ...handlers: RequestHandler[]
