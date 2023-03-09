@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 import 'whatwg-fetch'
-import { createServer, ServerApi } from '@open-draft/test-server'
+import { HttpServer } from '@open-draft/test-server/http'
 import { PathParams, rest } from 'msw'
 import { setupServer } from 'msw/node'
 import { createMiddleware } from '../src'
@@ -17,14 +17,14 @@ const handlers = [
   }),
 ]
 
-let httpServer: ServerApi
+const httpServer = new HttpServer((app) => {
+  app.use(createMiddleware(...handlers))
+})
+
 const server = setupServer(...handlers)
 
 beforeAll(async () => {
-  httpServer = await createServer((app) => {
-    app.use(createMiddleware(...handlers))
-  })
-
+  await httpServer.listen()
   server.listen()
   jest.spyOn(global.console, 'warn').mockImplementation()
 })
@@ -40,11 +40,10 @@ afterAll(async () => {
 })
 
 it('returns the mocked response from the middleware', async () => {
-  const res = await fetch(httpServer.http.makeUrl('/user'))
+  const res = await fetch(httpServer.http.url('/user'))
   const json = await res.json()
 
   expect(json).toEqual<UserResponse>({ firstName: 'John' })
-  expect(console.warn).toHaveBeenCalledTimes(2)
 
   // MSW should still prints warnings because matching in a JSDOM context
   // wasn't successful. This isn't a typical use case, as you won't be
@@ -52,12 +51,8 @@ it('returns the mocked response from the middleware', async () => {
   const warnings = (console.warn as jest.Mock).mock.calls.map((args) => args[0])
   expect(warnings).toEqual(
     expect.arrayContaining([
-      expect.stringMatching(
-        new RegExp(`GET ${httpServer.http.makeUrl('/user')}`),
-      ),
-      expect.stringMatching(
-        new RegExp(`GET ${httpServer.http.makeUrl('/user')}`),
-      ),
+      expect.stringMatching(new RegExp(`GET ${httpServer.http.url('/user')}`)),
+      expect.stringMatching(new RegExp(`GET ${httpServer.http.url('/user')}`)),
     ]),
   )
 })

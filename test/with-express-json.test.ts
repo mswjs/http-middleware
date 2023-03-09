@@ -3,34 +3,34 @@
  */
 import fetch from 'node-fetch'
 import express from 'express'
-import { ServerApi, createServer } from '@open-draft/test-server'
-import { RequestHandler, rest } from 'msw'
+import { HttpServer } from '@open-draft/test-server/http'
+import { rest } from 'msw'
 import { createMiddleware } from '../src'
 
-let server: ServerApi
+const httpServer = new HttpServer((app) => {
+  app.use(
+    createMiddleware(
+      rest.post('/user', async (req, res, ctx) => {
+        const { firstName } = await req.json()
+        return res(ctx.set('x-my-header', 'value'), ctx.json({ firstName }))
+      }),
+    ),
+  )
 
-const handlers: RequestHandler[] = [
-  rest.post('/user', async (req, res, ctx) => {
-    const { firstName } = await req.json()
-    return res(ctx.set('x-my-header', 'value'), ctx.json({ firstName }))
-  }),
-]
+  // Apply a request body JSON middleware.
+  app.use(express.json())
+})
 
 beforeAll(async () => {
-  server = await createServer((app) => {
-    app.use(createMiddleware(...handlers))
-
-    // Apply a request body JSON middleware.
-    app.use(express.json())
-  })
+  await httpServer.listen()
 })
 
 afterAll(async () => {
-  await server.close()
+  await httpServer.close()
 })
 
 it('supports usage alongside with the "express.json()" middleware', async () => {
-  const res = await fetch(server.http.makeUrl('/user'), {
+  const res = await fetch(httpServer.http.url('/user'), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
