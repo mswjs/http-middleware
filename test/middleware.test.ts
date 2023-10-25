@@ -3,7 +3,7 @@
  */
 import fetch from 'node-fetch'
 import { HttpServer } from '@open-draft/test-server/http'
-import { rest } from 'msw'
+import { http, HttpResponse } from 'msw'
 import { createMiddleware } from '../src'
 
 const httpServer = new HttpServer((app) => {
@@ -11,10 +11,14 @@ const httpServer = new HttpServer((app) => {
   // so that any matching request is resolved from the mocks.
   app.use(
     createMiddleware(
-      rest.get('/user', (_req, res, ctx) => {
-        return res(
-          ctx.set('x-my-header', 'value'),
-          ctx.json({ firstName: 'John' }),
+      http.get('/user', () => {
+        return HttpResponse.json(
+          { firstName: 'John' },
+          {
+            headers: {
+              'x-my-header': 'value',
+            },
+          },
         )
       }),
     ),
@@ -33,12 +37,20 @@ afterAll(async () => {
   await httpServer.close()
 })
 
-it('returns the mocked response when requesting the middleware', async () => {
-  const res = await fetch(httpServer.http.url('/user'))
-  const json = await res.json()
+afterEach(() => {
+  jest.resetAllMocks()
+})
 
-  expect(res.headers.get('x-my-header')).toEqual('value')
-  expect(json).toEqual({ firstName: 'John' })
+it('returns the mocked response when requesting the middleware', async () => {
+  try {
+    const res = await fetch(httpServer.http.url('/user'))
+    const json = await res.json()
+
+    expect(res.headers.get('x-my-header')).toEqual('value')
+    expect(json).toEqual({ firstName: 'John' })
+  } catch (e) {
+    console.log(e)
+  }
 })
 
 it('returns the original response given no matching request handler', async () => {

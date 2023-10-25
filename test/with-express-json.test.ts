@@ -4,21 +4,37 @@
 import fetch from 'node-fetch'
 import express from 'express'
 import { HttpServer } from '@open-draft/test-server/http'
-import { rest } from 'msw'
+import { HttpResponse, http } from 'msw'
 import { createMiddleware } from '../src'
 
 const httpServer = new HttpServer((app) => {
+  // Apply a request body JSON middleware.
+  app.use(express.json())
+
   app.use(
     createMiddleware(
-      rest.post('/user', async (req, res, ctx) => {
-        const { firstName } = await req.json()
-        return res(ctx.set('x-my-header', 'value'), ctx.json({ firstName }))
+      http.post<never, { firstName: string }>('/user', async ({ request }) => {
+        const { firstName } = await request.json()
+
+        return HttpResponse.json(
+          { firstName },
+          {
+            headers: {
+              'x-my-header': 'value',
+            },
+          },
+        )
       }),
     ),
   )
 
-  // Apply a request body JSON middleware.
-  app.use(express.json())
+  app.use((_req, res) => {
+    res.status(404).json({
+      error: 'Mock not found',
+    })
+  })
+
+  return app
 })
 
 beforeAll(async () => {

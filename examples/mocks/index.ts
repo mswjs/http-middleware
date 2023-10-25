@@ -1,4 +1,4 @@
-import { rest } from 'msw'
+import { http, HttpResponse } from 'msw'
 
 interface LoginBody {
   username: string
@@ -10,16 +10,13 @@ interface LoginResponse {
 }
 
 export const handlers = [
-  rest.post<LoginBody, LoginResponse>('/login', (req, res, ctx) => {
-    const { username } = req.body
-    return res(
-      ctx.json({
-        username,
-        firstName: 'John',
-      }),
-    )
+  http.post<LoginBody, LoginResponse>('/login', async ({ request }) => {
+    const user = await request.json()
+    const { username } = user
+
+    return HttpResponse.json({ username, firstName: 'John' })
   }),
-  rest.post('/logout', (_req, res, ctx) => {
-    return res(ctx.json({ message: 'logged out' }))
+  http.post('/logout', () => {
+    return HttpResponse.json({ message: 'logged out' })
   }),
 ]
