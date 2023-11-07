@@ -1,18 +1,17 @@
-import { encodeBuffer } from '@mswjs/interceptors'
-import { Headers } from 'headers-polyfill'
-import { handleRequest } from 'msw'
-import { Emitter } from 'strict-event-emitter'
 import { Readable } from 'node:stream'
 import crypto from 'node:crypto'
 import { ReadableStream } from 'node:stream/web'
+import { handleRequest } from 'msw'
+import { Emitter } from 'strict-event-emitter'
 
 import type { RequestHandler as ExpressMiddleware } from 'express'
 import type { LifeCycleEventsMap, RequestHandler } from 'msw'
 
+const encoder = new TextEncoder()
 const emitter = new Emitter<LifeCycleEventsMap>()
 
 export function createMiddleware(
-  ...handlers: RequestHandler[]
+  ...handlers: Array<RequestHandler>
 ): ExpressMiddleware {
   return async (req, res, next) => {
     const serverOrigin = `${req.protocol}://${req.get('host')}`
@@ -34,7 +33,7 @@ export function createMiddleware(
         // Request with GET/HEAD method cannot have body.
         body: ['GET', 'HEAD'].includes(method)
           ? undefined
-          : encodeBuffer(requestBody),
+          : encoder.encode(requestBody),
       },
     )
 

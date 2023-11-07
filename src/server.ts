@@ -2,7 +2,7 @@ import express from 'express'
 import { HttpHandler } from 'msw'
 import { createMiddleware } from './middleware'
 
-export function createServer(...handlers: HttpHandler[]) {
+export function createServer(...handlers: Array<HttpHandler>): express.Express {
   const app = express()
 
   app.use(express.json())
