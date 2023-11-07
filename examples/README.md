@@ -10,7 +10,7 @@ How to run:
 
 ```bash
 # From the root directory
-yarn example:basic
+pnpm example:basic
 ```
 
 Then you can POST to `/login` or `/logout` using curl or Postman.
@@ -23,7 +23,7 @@ How to run:
 
 ```bash
 # From the root directory
-yarn example:custom
+pnpm example:custom
 ```
 
 Then you can open your browser to [http://localhost:9090](http://localhost:9090) to try logging in or out.

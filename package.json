@@ -19,13 +19,13 @@
     "test": "jest",
     "lint": "eslint \"{examples,src,test}/**/*.ts\"",
     "clean": "rimraf ./lib",
-    "build": "yarn clean && tsc",
-    "example-build": "yarn build && cd examples && rimraf ./lib && tsc && cp -R public lib/examples/public",
-    "example:basic": "yarn example-build && node examples/lib/examples/basic-server.js",
-    "example:custom": "yarn example-build && node examples/lib/examples/custom-server.js",
+    "build": "pnpm clean && tsc",
+    "example-build": "pnpm build && cd examples && rimraf ./lib && tsc && cp -R public lib/examples/public",
+    "example:basic": "pnpm example-build && node examples/lib/examples/basic-server.js",
+    "example:custom": "pnpm example-build && node examples/lib/examples/custom-server.js",
     "release": "release publish",
     "prepare": "husky install",
-    "prepublishOnly": "yarn lint && yarn test && yarn build"
+    "prepublishOnly": "pnpm lint && pnpm test && pnpm build"
   },
   "lint-staged": {
     "*.ts": [
@@ -41,7 +41,8 @@
     "lib"
   ],
   "dependencies": {
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "strict-event-emitter": "^0.5.1"
   },
   "devDependencies": {
     "@open-draft/test-server": "0.4.x",
@@ -50,8 +51,8 @@
     "@types/jest": "^27.0.2",
     "@types/node": "^20.8.7",
     "@types/node-fetch": "^2.5.11",
-    "@typescript-eslint/eslint-plugin": "^5.54.1",
-    "@typescript-eslint/parser": "^6.9.0",
+    "@typescript-eslint/eslint-plugin": "^6.10.0",
+    "@typescript-eslint/parser": "^6.10.0",
     "eslint": "^8.35.0",
     "eslint-config-prettier": "^8.7.0",
     "eslint-plugin-prettier": "^4.2.1",
@@ -67,11 +68,10 @@
     "typescript": "^5.0.0"
   },
   "peerDependencies": {
-    "headers-polyfill": "^3.0.4",
     "msw": ">=2.0.0"
   },
   "engines": {
-    "node": ">=18",
-    "packageManager": "yarn"
-  }
+    "node": ">=18"
+  },
+  "packageManager": "pnpm@7.12.2"
 }

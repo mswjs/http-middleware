@@ -18,8 +18,6 @@ There are, however, use cases when this extension can be applicable:
 
 ```sh
 $ npm install @mswjs/http-middleware
-# or
-$ yarn add @mswjs/http-middleware
 ```
 
 ### Declare request handlers
