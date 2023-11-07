@@ -2,7 +2,7 @@
   "profiles": [
     {
       "name": "latest",
-      "use": "yarn publish --new-version $RELEASE_VERSION",
+      "use": "pnpm publish --no-git-checks",
       "prerelease": true
     }
   ]
