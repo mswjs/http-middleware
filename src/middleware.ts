@@ -28,7 +28,7 @@ export function createMiddleware(
       new URL(req.url, serverOrigin),
       {
         method: req.method,
-        headers: new Headers(req.headers as HeadersInit),
+        headers: req.headers as HeadersInit,
         credentials: 'omit',
         // Request with GET/HEAD method cannot have body.
         body: ['GET', 'HEAD'].includes(method)
