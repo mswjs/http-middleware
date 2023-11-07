@@ -1,16 +1,22 @@
-import { Emitter } from 'strict-event-emitter'
-import { Headers } from 'headers-polyfill'
-import { RequestHandler as ExpressMiddleware } from 'express'
-import { RequestHandler, handleRequest, MockedRequest } from 'msw'
 import { encodeBuffer } from '@mswjs/interceptors'
+import { Headers } from 'headers-polyfill'
+import { handleRequest } from 'msw'
+import { Emitter } from 'strict-event-emitter'
+import { Readable } from 'node:stream'
+import crypto from 'node:crypto'
+import { ReadableStream } from 'node:stream/web'
 
-const emitter = new Emitter()
+import type { RequestHandler as ExpressMiddleware } from 'express'
+import type { LifeCycleEventsMap, RequestHandler } from 'msw'
+
+const emitter = new Emitter<LifeCycleEventsMap>()
 
 export function createMiddleware(
   ...handlers: RequestHandler[]
 ): ExpressMiddleware {
   return async (req, res, next) => {
     const serverOrigin = `${req.protocol}://${req.get('host')}`
+    const method = req.method || 'GET'
 
     // Ensure the request body input passed to the MockedRequest
     // is always a string. Custom middleware like "express.json()"
@@ -18,19 +24,23 @@ export function createMiddleware(
     const requestBody =
       typeof req.body === 'string' ? req.body : JSON.stringify(req.body)
 
-    const mockedRequest = new MockedRequest(
+    const mockedRequest = new Request(
       // Treat all relative URLs as the ones coming from the server.
       new URL(req.url, serverOrigin),
       {
         method: req.method,
         headers: new Headers(req.headers as HeadersInit),
         credentials: 'omit',
-        body: encodeBuffer(requestBody),
+        // Request with GET/HEAD method cannot have body.
+        body: ['GET', 'HEAD'].includes(method)
+          ? undefined
+          : encodeBuffer(requestBody),
       },
     )
 
     await handleRequest(
       mockedRequest,
+      crypto.randomUUID(),
       handlers,
       {
         onUnhandledRequest: () => null,
@@ -44,8 +54,8 @@ export function createMiddleware(
            */
           baseUrl: serverOrigin,
         },
-        onMockedResponse(mockedResponse) {
-          const { status, statusText, headers, body, delay } = mockedResponse
+        onMockedResponse: async (mockedResponse) => {
+          const { status, statusText, headers } = mockedResponse
 
           res.statusCode = status
           res.statusMessage = statusText
@@ -54,12 +64,12 @@ export function createMiddleware(
             res.setHeader(name, value)
           })
 
-          if (delay) {
-            setTimeout(() => res.send(body), delay)
-            return
+          if (mockedResponse.body) {
+            const stream = Readable.fromWeb(
+              mockedResponse.body as ReadableStream,
+            )
+            stream.pipe(res)
           }
-
-          res.send(body)
         },
         onPassthroughResponse() {
           next()
