@@ -11,6 +11,10 @@ const httpServer = new HttpServer((app) => {
   // so that any matching request is resolved from the mocks.
   app.use(
     createMiddleware(
+      http.post('/users', () => {
+        return new HttpResponse(null, { status: 204 })
+      }),
+
       http.get('/user', () => {
         return HttpResponse.json(
           { firstName: 'John' },
@@ -51,6 +55,14 @@ it('returns the mocked response when requesting the middleware', async () => {
   } catch (e) {
     console.log(e)
   }
+})
+
+it('returns the mocked 204 with empty body', async () => {
+  const res = await fetch(httpServer.http.url('/users'), { method: 'POST' })
+
+  expect(res.status).toEqual(204)
+  expect(res.ok).toBeTruthy()
+  expect(res.bodyUsed).toBeFalsy()
 })
 
 it('returns the original response given no matching request handler', async () => {
