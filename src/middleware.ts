@@ -68,6 +68,8 @@ export function createMiddleware(
               mockedResponse.body as ReadableStream,
             )
             stream.pipe(res)
+          } else {
+            res.end()
           }
         },
         onPassthroughResponse() {
