@@ -4,7 +4,7 @@ Spawn an [Express](https://expressjs.com) server from your [Mock Service Worker]
 
 ## When to use this?
 
-You should always prefer Mock Service Worker for API mocking because it can meet most of your requirements without having to spawn and maintain an actual HTTP server. Please refer to the [Getting started](https://mswjs.io/docs/getting-started/install) tutorial to integrate next-generation API mocking into your application.
+You should always prefer Mock Service Worker for API mocking because it can meet most of your requirements without having to spawn and maintain an actual HTTP server. Please refer to the [Getting started](https://mswjs.io/docs/getting-started) tutorial to integrate next-generation API mocking into your application.
 
 There are, however, use cases when this extension can be applicable:
 
@@ -24,29 +24,29 @@ $ npm install @mswjs/http-middleware
 
 ```js
 // src/mocks/handlers.js
-import { rest, graphql } from 'msw'
+import { http, graphql, HttpResponse } from 'msw'
 
 export const handlers = [
-  rest.post('/user', (req, res, ctx) => {
-    return res(ctx.json({ firstName: 'John' }))
+  http.post('/user', () => {
+    return HttpResponse.json({ firstName: 'John' })
   }),
-  graphql.query('GetUser', (req, res, ctx) => {
-    return res(
-      ctx.data({
+  graphql.query('GetUser', () => {
+    return HttpResponse.json({
+      data: {
         user: {
           firstName: 'John',
         },
-      }),
-    )
+      },
+    })
   }),
 ]
 ```
 
-> Learn more about writing [request handlers](https://mswjs.io/docs/getting-started/mocks).
+> Learn more about writing [request handlers](https://mswjs.io/docs/concepts/request-handler).
 
-### Integrate
+### Integration
 
-#### A. Spawn a standalone server
+#### Option 1: Standalone server
 
 ```js
 import { createServer } from '@mswjs/http-middleware'
@@ -57,7 +57,7 @@ const httpServer = createServer(...handlers)
 httpServer.listen(9090)
 ```
 
-#### B. Apply as a middleware
+#### Option 2: Middleware
 
 ```js
 import { createMiddleware } from '@mswjs/http-middleware'
@@ -74,12 +74,12 @@ app.use(createMiddleware(...handlers))
 Establishes a standalone Express server that uses the given request handlers to process all incoming requests.
 
 ```ts
-import { rest } from 'msw'
+import { http, HttpResponse } from 'msw'
 import { createServer } from '@mswjs/http-middleware'
 
 const httpServer = createServer(
-  rest.get('/user', (req, res, ctx) => {
-    return res(ctx.json({ firstName: 'John' }))
+  http.get('/user', () => {
+    return HttpResponse.json({ firstName: 'John' })
   }),
 )
 
@@ -102,15 +102,15 @@ Content-Type: application/json
 Creates an Express middleware function that uses the given request handlers to process all incoming requests.
 
 ```ts
-import { rest } from 'msw'
+import { http, HttpResponse } from 'msw'
 import { createMiddleware } from '@mswjs/http-middleware'
 
 const app = express()
 
 app.use(
   createMiddleware(
-    rest.get('/user', (req, res, ctx) => {
-      return res(ctx.json({ firstName: 'John' }))
+    http.get('/user', () => {
+      return HttpResponse.json({ firstName: 'John' })
     }),
   ),
 )
