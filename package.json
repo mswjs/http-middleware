@@ -1,6 +1,6 @@
 {
   "name": "@mswjs/http-middleware",
-  "version": "0.9.1",
+  "version": "0.9.2",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "author": {
