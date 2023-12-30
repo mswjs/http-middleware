@@ -3,50 +3,52 @@
  */
 import fetch from 'node-fetch'
 import express from 'express'
-import { HttpServer } from '@open-draft/test-server/http'
 import { HttpResponse, http } from 'msw'
 import { createMiddleware } from '../src'
 
-const httpServer = new HttpServer((app) => {
-  // Apply a request body JSON middleware.
-  app.use(express.json())
+import httpModule from 'http'
+import { AddressInfo } from 'net'
 
-  app.use(
-    createMiddleware(
-      http.post<never, { firstName: string }>('/user', async ({ request }) => {
-        const { firstName } = await request.json()
+const app = express()
 
-        return HttpResponse.json(
-          { firstName },
-          {
-            headers: {
-              'x-my-header': 'value',
-            },
+app.use(express.raw({ type: '*/*' }))
+
+app.use(
+  createMiddleware(
+    http.post<never, { firstName: string }>('/user', async ({ request }) => {
+      const { firstName } = await request.json()
+
+      return HttpResponse.json(
+        { firstName },
+        {
+          headers: {
+            'x-my-header': 'value',
           },
-        )
-      }),
-    ),
-  )
+        },
+      )
+    }),
+  ),
+)
 
-  app.use((_req, res) => {
-    res.status(404).json({
-      error: 'Mock not found',
-    })
+app.use((_req, res) => {
+  res.status(404).json({
+    error: 'Mock not found',
   })
-
-  return app
 })
 
-beforeAll(async () => {
-  await httpServer.listen()
+const httpServer = httpModule.createServer(app)
+
+beforeAll(() => {
+  httpServer.listen({ port: 0 })
 })
 
 afterAll(async () => {
-  await httpServer.close()
+  httpServer.close()
 })
 
-it('supports usage alongside with the "express.json()" middleware', async () => {
-  const res = await fetch(httpServer.http.url('/user'), {
+it('supports usage with json payload', async () => {
+  const { port } = httpServer.address() as AddressInfo
+  const res = await fetch(`http://localhost:${port}/user`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
