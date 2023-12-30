@@ -7,7 +7,6 @@ import { Emitter } from 'strict-event-emitter'
 import type { RequestHandler as ExpressMiddleware } from 'express'
 import type { LifeCycleEventsMap, RequestHandler } from 'msw'
 
-const encoder = new TextEncoder()
 const emitter = new Emitter<LifeCycleEventsMap>()
 
 export function createMiddleware(
@@ -18,10 +17,8 @@ export function createMiddleware(
     const method = req.method || 'GET'
 
     // Ensure the request body input passed to the MockedRequest
-    // is always a string. Custom middleware like "express.json()"
-    // may coerce "req.body" to be an Object.
-    const requestBody =
-      typeof req.body === 'string' ? req.body : JSON.stringify(req.body)
+    // is always the raw body from express req.
+    // "express.raw({ type: '*/*' })" must be used to get "req.body".
 
     const mockedRequest = new Request(
       // Treat all relative URLs as the ones coming from the server.
@@ -31,9 +28,7 @@ export function createMiddleware(
         headers: new Headers(req.headers as HeadersInit),
         credentials: 'omit',
         // Request with GET/HEAD method cannot have body.
-        body: ['GET', 'HEAD'].includes(method)
-          ? undefined
-          : encoder.encode(requestBody),
+        body: ['GET', 'HEAD'].includes(method) ? undefined : req.body,
       },
     )
 
