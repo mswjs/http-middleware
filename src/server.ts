@@ -2,10 +2,15 @@ import express from 'express'
 import { HttpHandler } from 'msw'
 import { createMiddleware } from './middleware'
 
-export function createServer(...handlers: Array<HttpHandler>): express.Express {
+type ParserOptions = Parameters<typeof express.raw>[0]
+
+export function createServer(
+  parserOptions?: ParserOptions,
+  ...handlers: Array<HttpHandler>
+): express.Express {
   const app = express()
 
-  app.use(express.raw({ type: '*/*', limit: '20mb' }))
+  app.use(express.raw({ type: '*/*', limit: '20mb', ...parserOptions }))
   app.use(createMiddleware(...handlers))
   app.use((_req, res) => {
     res.status(404).json({
