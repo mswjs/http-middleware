@@ -76,6 +76,6 @@ export function createMiddleware(
           next()
         },
       },
-    )
+    ).catch(next)
   }
 }
