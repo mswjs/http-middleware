@@ -60,7 +60,11 @@ export function createMiddleware(
           res.statusMessage = statusText
 
           headers.forEach((value, name) => {
-            res.setHeader(name, value)
+            /**
+             * @note Use `.appendHeader()` to support multi-value
+             * response headers, like "Set-Cookie".
+             */
+            res.appendHeader(name, value)
           })
 
           if (mockedResponse.body) {
