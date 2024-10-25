@@ -30,8 +30,8 @@ export function createMiddleware(
           ? req.readable
             ? (Readable.toWeb(req) as ReadableStream)
             : req.header('content-type')?.includes('json')
-            ? JSON.stringify(req.body)
-            : req.body
+              ? JSON.stringify(req.body)
+              : req.body
           : undefined,
       },
     )
