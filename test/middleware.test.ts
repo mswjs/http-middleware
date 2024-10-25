@@ -15,6 +15,10 @@ const httpServer = new HttpServer((app) => {
         return new HttpResponse(null, { status: 204 })
       }),
 
+      http.get('/error', () => {
+        throw new Error('Something went wrong.')
+      }),
+
       http.get('/user', () => {
         return HttpResponse.json(
           { firstName: 'John' },
@@ -70,4 +74,11 @@ it('returns the original response given no matching request handler', async () =
   const text = await res.text()
 
   expect(text).toEqual('book')
+})
+
+it('forwards promise rejections to error middleware', async () => {
+  const res = await fetch(httpServer.http.url('/error'))
+
+  expect(res.status).toEqual(500)
+  expect(res.ok).toBeFalsy()
 })
