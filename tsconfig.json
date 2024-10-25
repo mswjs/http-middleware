@@ -1,14 +1,7 @@
 {
-  "compilerOptions": {
-    "strict": true,
-    "target": "es6",
-    "module": "CommonJS",
-    "moduleResolution": "node",
-    "outDir": "./lib",
-    "declaration": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true
-  },
-  "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", "examples"]
+  "references": [
+    { "path": "./tsconfig.src.json" },
+    { "path": "./tsconfig.test.json" }
+  ],
+  "files": []
 }

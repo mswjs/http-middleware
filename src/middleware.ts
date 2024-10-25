@@ -1,44 +1,43 @@
-import { Readable } from 'node:stream'
 import crypto from 'node:crypto'
-import { ReadableStream } from 'node:stream/web'
+import { Readable } from 'node:stream'
 import { handleRequest } from 'msw'
 import { Emitter } from 'strict-event-emitter'
 
+import type { ReadableStream as NodeReadableStream } from 'node:stream/web'
 import type { RequestHandler as ExpressMiddleware } from 'express'
 import type { LifeCycleEventsMap, RequestHandler } from 'msw'
 
-const encoder = new TextEncoder()
 const emitter = new Emitter<LifeCycleEventsMap>()
 
 export function createMiddleware(
   ...handlers: Array<RequestHandler>
 ): ExpressMiddleware {
   return async (req, res, next) => {
-    const serverOrigin = `${req.protocol}://${req.get('host')}`
     const method = req.method || 'GET'
+    const serverOrigin = `${req.protocol}://${req.get('host')}`
+    const canRequestHaveBody = method !== 'HEAD' && method !== 'GET'
 
-    // Ensure the request body input passed to the MockedRequest
-    // is always a string. Custom middleware like "express.json()"
-    // may coerce "req.body" to be an Object.
-    const requestBody =
-      typeof req.body === 'string' ? req.body : JSON.stringify(req.body)
-
-    const mockedRequest = new Request(
+    const fetchRequest = new Request(
       // Treat all relative URLs as the ones coming from the server.
       new URL(req.url, serverOrigin),
       {
-        method: req.method,
+        method,
         headers: new Headers(req.headers as HeadersInit),
         credentials: 'omit',
-        // Request with GET/HEAD method cannot have body.
-        body: ['GET', 'HEAD'].includes(method)
-          ? undefined
-          : encoder.encode(requestBody),
+        // @ts-ignore Internal Undici property.
+        duplex: canRequestHaveBody ? 'half' : undefined,
+        body: canRequestHaveBody
+          ? req.readable
+            ? (Readable.toWeb(req) as ReadableStream)
+            : req.header('content-type')?.includes('json')
+            ? JSON.stringify(req.body)
+            : req.body
+          : undefined,
       },
     )
 
     await handleRequest(
-      mockedRequest,
+      fetchRequest,
       crypto.randomUUID(),
       handlers,
       {
@@ -53,7 +52,7 @@ export function createMiddleware(
            */
           baseUrl: serverOrigin,
         },
-        onMockedResponse: async (mockedResponse) => {
+        async onMockedResponse(mockedResponse) {
           const { status, statusText, headers } = mockedResponse
 
           res.statusCode = status
@@ -69,7 +68,7 @@ export function createMiddleware(
 
           if (mockedResponse.body) {
             const stream = Readable.fromWeb(
-              mockedResponse.body as ReadableStream,
+              mockedResponse.body as NodeReadableStream,
             )
             stream.pipe(res)
           } else {
