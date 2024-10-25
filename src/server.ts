@@ -10,7 +10,6 @@ export function createServer(
 ): express.Express {
   const app = express()
 
-  app.use(express.raw({ type: '*/*', limit: '20mb', ...parserOptions }))
   app.use(createMiddleware(...handlers))
   app.use((_req, res) => {
     res.status(404).json({

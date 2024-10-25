@@ -1,64 +1,48 @@
 /**
  * @jest-environment node
  */
-import express from 'express'
+import { HttpServer } from '@open-draft/test-server/http'
 import { HttpResponse, http } from 'msw'
 import { createMiddleware } from '../src'
 
-import httpModule from 'http'
-import { AddressInfo } from 'net'
+const httpServer = new HttpServer((app) => {
+  app.use(
+    createMiddleware(
+      http.post<never, { firstName: string }>('/user', async ({ request }) => {
+        const form = await request.formData()
+        const field1 = form.get('field1')
+        const field2 = form.get('field2')
 
-const app = express()
+        if (!field1 || typeof field1 !== 'string') return HttpResponse.error()
+        if (!field2 || typeof field2 !== 'string') return HttpResponse.error()
 
-app.use(express.raw({ type: '*/*' }))
-
-app.use(
-  createMiddleware(
-    http.post<never, { firstName: string }>('/user', async ({ request }) => {
-      const form = await request.formData()
-
-      const field1 = form.get('field1')
-      const field2 = form.get('field2')
-
-      if (!field1 || typeof field1 !== 'string') return HttpResponse.error()
-      if (!field2 || typeof field2 !== 'string') return HttpResponse.error()
-
-      return HttpResponse.json(
-        { field1, field2 },
-        {
-          headers: {
-            'x-my-header': 'value',
+        return HttpResponse.json(
+          { field1, field2 },
+          {
+            headers: {
+              'x-my-header': 'value',
+            },
           },
-        },
-      )
-    }),
-  ),
-)
-
-app.use((_req, res) => {
-  res.status(404).json({
-    error: 'Mock not found',
-  })
+        )
+      }),
+    ),
+  )
 })
 
-const httpServer = httpModule.createServer(app)
-
-beforeAll(() => {
-  httpServer.listen({ port: 0 })
+beforeAll(async () => {
+  await httpServer.listen()
 })
 
 afterAll(async () => {
-  httpServer.close()
+  await httpServer.close()
 })
 
-it('supports usage with multipart/form-data payload', async () => {
+it('supports "multipart/form-data" requests', async () => {
   const form = new FormData()
-
   form.append('field1', 'value1')
   form.append('field2', 'value2')
 
-  const { port } = httpServer.address() as AddressInfo
-  const res = await fetch(`http://localhost:${port}/user`, {
+  const res = await fetch(httpServer.http.url('/user'), {
     method: 'POST',
     body: form,
   })
