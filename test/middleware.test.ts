@@ -1,7 +1,3 @@
-/**
- * @jest-environment node
- */
-import fetch from 'node-fetch'
 import { HttpServer } from '@open-draft/test-server/http'
 import { http, HttpResponse } from 'msw'
 import { createMiddleware } from '../src'
@@ -46,39 +42,34 @@ afterAll(async () => {
 })
 
 afterEach(() => {
-  jest.resetAllMocks()
+  vi.resetAllMocks()
 })
 
 it('returns the mocked response when requesting the middleware', async () => {
-  try {
-    const res = await fetch(httpServer.http.url('/user'))
-    const json = await res.json()
+  const response = await fetch(httpServer.http.url('/user'))
 
-    expect(res.headers.get('x-my-header')).toEqual('value')
-    expect(json).toEqual({ firstName: 'John' })
-  } catch (e) {
-    console.log(e)
-  }
+  expect(response.headers.get('x-my-header')).toEqual('value')
+  await expect(response.json()).resolves.toEqual({ firstName: 'John' })
 })
 
 it('returns the mocked 204 with empty body', async () => {
-  const res = await fetch(httpServer.http.url('/users'), { method: 'POST' })
+  const response = await fetch(httpServer.http.url('/users'), {
+    method: 'POST',
+  })
 
-  expect(res.status).toEqual(204)
-  expect(res.ok).toBeTruthy()
-  expect(res.bodyUsed).toBeFalsy()
+  expect(response.status).toEqual(204)
+  expect(response.ok).toBeTruthy()
+  expect(response.bodyUsed).toBeFalsy()
 })
 
 it('returns the original response given no matching request handler', async () => {
-  const res = await fetch(httpServer.http.url('/book'))
-  const text = await res.text()
-
-  expect(text).toEqual('book')
+  const response = await fetch(httpServer.http.url('/book'))
+  await expect(response.text()).resolves.toBe('book')
 })
 
 it('forwards promise rejections to error middleware', async () => {
-  const res = await fetch(httpServer.http.url('/error'))
+  const response = await fetch(httpServer.http.url('/error'))
 
-  expect(res.status).toEqual(500)
-  expect(res.ok).toBeFalsy()
+  expect(response.status).toEqual(500)
+  expect(response.ok).toBeFalsy()
 })
