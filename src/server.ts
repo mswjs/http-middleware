@@ -1,8 +1,10 @@
 import express from 'express'
-import { HttpHandler } from 'msw'
+import { RequestHandler } from 'msw'
 import { createMiddleware } from './middleware'
 
-export function createServer(...handlers: Array<HttpHandler>): express.Express {
+export function createServer(
+  ...handlers: Array<RequestHandler>
+): express.Express {
   const app = express()
 
   app.use(createMiddleware(...handlers))
