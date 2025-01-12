@@ -1,12 +1,9 @@
 import express from 'express'
-import { HttpHandler } from 'msw'
+import { RequestHandler } from 'msw'
 import { createMiddleware } from './middleware'
 
-type ParserOptions = Parameters<typeof express.raw>[0]
-
 export function createServer(
-  parserOptions?: ParserOptions,
-  ...handlers: Array<HttpHandler>
+  ...handlers: Array<RequestHandler>
 ): express.Express {
   const app = express()
 
