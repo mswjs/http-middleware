@@ -10,11 +10,12 @@ const httpServer = new HttpServer((app) => {
       http.post('/users', () => {
         return new HttpResponse(null, { status: 204 })
       }),
-
+      http.post('/proxy', async ({ request }) => {
+        return HttpResponse.json(await request.json())
+      }),
       http.get('/error', () => {
         throw new Error('Something went wrong.')
       }),
-
       http.get('/user', () => {
         return HttpResponse.json(
           { firstName: 'John' },
@@ -30,6 +31,14 @@ const httpServer = new HttpServer((app) => {
 
   app.get('/book', (req, res) => {
     return res.status(200).send('book')
+  })
+
+  app.use((req, res) => {
+    res.status(404).json({
+      readable: req.readable,
+      readableDidRead: req.readableDidRead,
+      readableEnded: req.readableEnded,
+    })
   })
 })
 
@@ -48,8 +57,8 @@ afterEach(() => {
 it('returns the mocked response when requesting the middleware', async () => {
   const response = await fetch(httpServer.http.url('/user'))
 
-  expect(response.headers.get('x-my-header')).toEqual('value')
-  await expect(response.json()).resolves.toEqual({ firstName: 'John' })
+  expect.soft(response.headers.get('x-my-header')).toEqual('value')
+  await expect.soft(response.json()).resolves.toEqual({ firstName: 'John' })
 })
 
 it('returns the mocked 204 with empty body', async () => {
@@ -57,9 +66,20 @@ it('returns the mocked 204 with empty body', async () => {
     method: 'POST',
   })
 
-  expect(response.status).toEqual(204)
-  expect(response.ok).toBeTruthy()
-  expect(response.bodyUsed).toBeFalsy()
+  expect.soft(response.status).toEqual(204)
+  expect.soft(response.ok).toBeTruthy()
+  expect.soft(response.bodyUsed).toBeFalsy()
+})
+
+it('allows reading request body in the resolver', async () => {
+  const response = await fetch(httpServer.http.url('/proxy'), {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ hello: 'world' }),
+  })
+
+  expect.soft(response.status).toEqual(200)
+  await expect.soft(response.json()).resolves.toEqual({ hello: 'world' })
 })
 
 it('returns the original response given no matching request handler', async () => {
@@ -70,6 +90,20 @@ it('returns the original response given no matching request handler', async () =
 it('forwards promise rejections to error middleware', async () => {
   const response = await fetch(httpServer.http.url('/error'))
 
-  expect(response.status).toEqual(500)
-  expect(response.ok).toBeFalsy()
+  expect.soft(response.status).toEqual(500)
+  expect.soft(response.ok).toBeFalsy()
+})
+
+it('does not lock the request stream for other middleware', async () => {
+  const response = await fetch(httpServer.http.url('/intentionally-unknown'), {
+    method: 'POST',
+    headers: { 'content-type': 'text/plain' },
+    body: 'hello world',
+  })
+
+  await expect(response.json()).resolves.toEqual({
+    readable: true,
+    readableDidRead: false,
+    readableEnded: false,
+  })
 })

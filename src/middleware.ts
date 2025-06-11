@@ -1,37 +1,39 @@
 import crypto from 'node:crypto'
 import { Readable } from 'node:stream'
-import { handleRequest } from 'msw'
-import { Emitter } from 'strict-event-emitter'
-
 import type { ReadableStream as NodeReadableStream } from 'node:stream/web'
 import type { RequestHandler as ExpressMiddleware } from 'express'
-import type { LifeCycleEventsMap, RequestHandler } from 'msw'
+import {
+  handleRequest,
+  type LifeCycleEventsMap,
+  type RequestHandler,
+} from 'msw'
+import { Emitter } from 'strict-event-emitter'
 
 const emitter = new Emitter<LifeCycleEventsMap>()
 
 export function createMiddleware(
   ...handlers: Array<RequestHandler>
 ): ExpressMiddleware {
-  return async (req, res, next) => {
-    const method = req.method || 'GET'
-    const serverOrigin = `${req.protocol}://${req.get('host')}`
+  return async (request, response, next) => {
+    const method = request.method || 'GET'
+    const serverOrigin = `${request.protocol}://${request.get('host')}`
     const canRequestHaveBody = method !== 'HEAD' && method !== 'GET'
 
     const fetchRequest = new Request(
       // Treat all relative URLs as the ones coming from the server.
-      new URL(req.url, serverOrigin),
+      new URL(request.url, serverOrigin),
       {
         method,
-        headers: new Headers(req.headers as HeadersInit),
+        headers: new Headers(request.headers as HeadersInit),
         credentials: 'omit',
         // @ts-ignore Internal Undici property.
         duplex: canRequestHaveBody ? 'half' : undefined,
         body: canRequestHaveBody
-          ? req.readable
-            ? (Readable.toWeb(req) as ReadableStream)
-            : req.header('content-type')?.includes('json')
-              ? JSON.stringify(req.body)
-              : req.body
+          ? request.readable
+            ? (Readable.toWeb(request) as ReadableStream)
+            : request.header('content-type')?.includes('json')
+              ? JSON.stringify(request.body)
+              : request.body
           : undefined,
       },
     )
@@ -55,24 +57,24 @@ export function createMiddleware(
         async onMockedResponse(mockedResponse) {
           const { status, statusText, headers } = mockedResponse
 
-          res.statusCode = status
-          res.statusMessage = statusText
+          response.statusCode = status
+          response.statusMessage = statusText
 
           headers.forEach((value, name) => {
             /**
              * @note Use `.appendHeader()` to support multi-value
              * response headers, like "Set-Cookie".
              */
-            res.appendHeader(name, value)
+            response.appendHeader(name, value)
           })
 
           if (mockedResponse.body) {
             const stream = Readable.fromWeb(
               mockedResponse.body as NodeReadableStream,
             )
-            stream.pipe(res)
+            stream.pipe(response)
           } else {
-            res.end()
+            response.end()
           }
         },
         onPassthroughResponse() {
