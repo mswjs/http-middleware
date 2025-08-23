@@ -42,9 +42,12 @@ it('supports "multipart/form-data" requests (no body parser)', async () => {
     body: form,
   })
 
-  expect(res.status).toBe(200)
-  expect(res.headers.get('x-my-header')).toBe('value')
-  expect(await res.json()).toEqual({ field1: 'value1', field2: 'value2' })
+  expect.soft(res.status).toBe(200)
+  expect.soft(res.headers.get('x-my-header')).toBe('value')
+  await expect.soft(res.json()).resolves.toEqual({
+    field1: 'value1',
+    field2: 'value2',
+  })
 })
 
 it('supports "multipart/form-data" requests (raw body parser)', async () => {
@@ -87,7 +90,10 @@ it('supports "multipart/form-data" requests (raw body parser)', async () => {
     body: form,
   })
 
-  expect(res.status).toBe(200)
-  expect(res.headers.get('x-my-header')).toBe('value')
-  expect(await res.json()).toEqual({ field1: 'value1', field2: 'value2' })
+  expect.soft(res.status).toBe(200)
+  expect.soft(res.headers.get('x-my-header')).toBe('value')
+  await expect.soft(res.json()).resolves.toEqual({
+    field1: 'value1',
+    field2: 'value2',
+  })
 })

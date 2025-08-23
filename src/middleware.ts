@@ -16,12 +16,12 @@ export function createMiddleware(
 ): ExpressMiddleware {
   return async (request, response, next) => {
     const method = request.method || 'GET'
-    const serverOrigin = `${request.protocol}://${request.get('host')}`
+    const origin = `${request.protocol}://${request.get('host')}`
     const canRequestHaveBody = method !== 'HEAD' && method !== 'GET'
 
     const fetchRequest = new Request(
       // Treat all relative URLs as the ones coming from the server.
-      new URL(request.url, serverOrigin),
+      new URL(request.url, origin),
       {
         method,
         headers: new Headers(request.headers as HeadersInit),
@@ -52,7 +52,7 @@ export function createMiddleware(
            * @note Resolve relative request handler URLs against
            * the server's origin (no relative URLs in Node.js).
            */
-          baseUrl: serverOrigin,
+          baseUrl: origin,
         },
         async onMockedResponse(mockedResponse) {
           const { status, statusText, headers } = mockedResponse

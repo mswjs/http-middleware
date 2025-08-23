@@ -101,6 +101,8 @@ it('does not lock the request stream for other middleware', async () => {
     body: 'hello world',
   })
 
+  console.log(await response.text())
+
   await expect(response.json()).resolves.toEqual({
     readable: true,
     readableDidRead: false,
