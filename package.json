@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "@msw/serve",
-  "version": "0.10.3",
+  "version": "0.11.0",
   "exports": {
     ".": "./build/index.mjs",
     "./express": "./build/express.mjs",
