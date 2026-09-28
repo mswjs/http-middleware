@@ -202,19 +202,19 @@ class UnsupportedWebSocketServer implements WebSocketServerHandle {
 
   connect(): void {
     throw new Error(
-      'Failed to call "server.connect()": there is no original WebSocket server to connect to in "@mswjs/http-middleware".',
+      'Failed to call "server.connect()": there is no original WebSocket server to connect to in "@msw/serve".',
     )
   }
 
   send(): void {
     throw new Error(
-      'Failed to call "server.send()": there is no original WebSocket server in "@mswjs/http-middleware".',
+      'Failed to call "server.send()": there is no original WebSocket server in "@msw/serve".',
     )
   }
 
   close(): void {
     throw new Error(
-      'Failed to call "server.close()": there is no original WebSocket server in "@mswjs/http-middleware".',
+      'Failed to call "server.close()": there is no original WebSocket server in "@msw/serve".',
     )
   }
 

@@ -1,6 +1,6 @@
 {
   "type": "module",
-  "name": "@mswjs/http-middleware",
+  "name": "@msw/serve",
   "version": "0.10.3",
   "exports": {
     ".": "./build/index.mjs",
@@ -56,7 +56,10 @@
   "homepage": "https://mswjs.io",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mswjs/http-middleware.git"
+    "url": "git+https://github.com/mswjs/serve.git"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "files": [
     "build"

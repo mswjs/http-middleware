@@ -1,4 +1,4 @@
-# `@mswjs/http-middleware`
+# `@msw/serve`
 
 Spawn a standalone HTTP server from your [Mock Service Worker](https://github.com/mswjs/msw) handlers, or apply them as middleware to an existing [Express](https://expressjs.com), [Hono](https://hono.dev), or [Fastify](https://fastify.dev) server.
 
@@ -17,7 +17,7 @@ There are, however, use cases when this extension can be applicable:
 ### Install
 
 ```sh
-$ npm i @mswjs/http-middleware
+$ npm i @msw/serve
 ```
 
 ### Describe the network
@@ -52,7 +52,7 @@ export const handlers = [
 #### Standalone server
 
 ```js
-import { createServer } from '@mswjs/http-middleware'
+import { createServer } from '@msw/serve'
 import { handlers } from './handlers'
 
 const server = createServer(...handlers)
@@ -66,9 +66,9 @@ This package exposes a middleware for each supported server framework via a dedi
 
 | Framework                        | Import path                      |
 | -------------------------------- | -------------------------------- |
-| [Express](https://expressjs.com) | `@mswjs/http-middleware/express` |
-| [Hono](https://hono.dev)         | `@mswjs/http-middleware/hono`    |
-| [Fastify](https://fastify.dev)   | `@mswjs/http-middleware/fastify` |
+| [Express](https://expressjs.com) | `@msw/serve/express` |
+| [Hono](https://hono.dev)         | `@msw/serve/hono`    |
+| [Fastify](https://fastify.dev)   | `@msw/serve/fastify` |
 
 The framework itself is an optional peer dependency. Install the one you use.
 
@@ -76,7 +76,7 @@ The framework itself is an optional peer dependency. Install the one you use.
 
 ```js
 import express from 'express'
-import { createMiddleware } from '@mswjs/http-middleware/express'
+import { createMiddleware } from '@msw/serve/express'
 import { handlers } from './handlers'
 
 const app = express()
@@ -89,7 +89,7 @@ app.listen(9090)
 
 ```js
 import { Hono } from 'hono'
-import { createMiddleware } from '@mswjs/http-middleware/hono'
+import { createMiddleware } from '@msw/serve/hono'
 import { handlers } from './handlers'
 
 const app = new Hono()
@@ -101,7 +101,7 @@ app.use(createMiddleware(...handlers))
 
 ```js
 import fastify from 'fastify'
-import { createMiddleware } from '@mswjs/http-middleware/fastify'
+import { createMiddleware } from '@msw/serve/fastify'
 import { handlers } from './handlers'
 
 const app = fastify()
@@ -116,7 +116,7 @@ Every entry point also accepts [WebSocket handlers](https://mswjs.io/docs/websoc
 
 ```js
 import { ws } from 'msw'
-import { createMiddleware } from '@mswjs/http-middleware/express'
+import { createMiddleware } from '@msw/serve/express'
 
 const chat = ws.link('/chat')
 
@@ -143,7 +143,7 @@ Available from every export path. Creates a framework-specific middleware that r
 
 ```ts
 import { http, HttpResponse } from 'msw'
-import { createMiddleware } from '@mswjs/http-middleware/express'
+import { createMiddleware } from '@msw/serve/express'
 
 app.use(
   createMiddleware(
@@ -175,7 +175,7 @@ Available from the package root. Creates a standalone Node.js [`http.Server`](ht
 
 ```ts
 import { http, HttpResponse } from 'msw'
-import { createServer } from '@mswjs/http-middleware'
+import { createServer } from '@msw/serve'
 
 const server = createServer(
   http.get('/user', () => {

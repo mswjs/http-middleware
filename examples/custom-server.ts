@@ -1,6 +1,6 @@
 import path from 'node:path'
 import express from 'express'
-import { createMiddleware } from '@mswjs/http-middleware/express'
+import { createMiddleware } from '@msw/serve/express'
 import { handlers } from './mocks/index.ts'
 
 const app = express()
