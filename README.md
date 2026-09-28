@@ -110,6 +110,31 @@ app.addHook('onRequest', createMiddleware(...handlers))
 await app.listen({ port: 9090 })
 ```
 
+### WebSocket handlers
+
+Every entry point also accepts [WebSocket handlers](https://mswjs.io/docs/websocket) (`ws.link()`) and GraphQL subscription handlers (`graphql.link().subscription()`). When any are present, the middleware upgrades matching WebSocket connections using the [`ws`](https://github.com/websockets/ws) package and routes them through your handlers. Nothing else to configure.
+
+```js
+import { ws } from 'msw'
+import { createMiddleware } from '@mswjs/http-middleware/express'
+
+const chat = ws.link('/chat')
+
+app.use(
+  createMiddleware(
+    chat.addEventListener('connection', ({ client }) => {
+      client.addEventListener('message', (event) => {
+        client.send(`Hello, ${event.data}!`)
+      })
+    }),
+  ),
+)
+```
+
+- Upgrade requests whose URL matches no WebSocket handler are passed through to the rest of your application.
+- The middleware _is_ the server, so `server.connect()` (forwarding to the original server) is not supported and throws.
+- Hono: WebSocket support requires running on Node.js via `@hono/node-server`.
+
 ## API
 
 ### `createMiddleware(...handlers: RequestHandler[])`

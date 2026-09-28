@@ -1,26 +1,41 @@
 import { Readable } from 'node:stream'
 import type { ReadableStream as NodeReadableStream } from 'node:stream/web'
 import type { onRequestAsyncHookHandler } from 'fastify'
-import type { RequestHandler } from 'msw'
+import type { AnyHandler } from 'msw'
+import { InMemoryHandlersController } from 'msw/experimental'
 import { resolveRequest } from './utils/resolve-request.js'
 import { toFetchRequest } from './utils/to-fetch-request.js'
+import { createWebSocketMiddleware } from './utils/websocket-middleware.js'
 
 /**
  * Create a Fastify `onRequest` hook that resolves incoming
- * requests against the given request handlers.
+ * requests (and WebSocket connections) against the given handlers.
  *
  * @example
  * app.addHook('onRequest', createMiddleware(...handlers))
  */
 export function createMiddleware(
-  ...handlers: Array<RequestHandler>
+  ...handlers: Array<AnyHandler>
 ): onRequestAsyncHookHandler {
-  return async (request, reply) => {
-    const fetchRequest = toFetchRequest(request.raw, {
-      origin: `${request.protocol}://${request.host}`,
-    })
+  const handlersController = new InMemoryHandlersController(handlers)
+  const webSocketMiddleware = createWebSocketMiddleware(handlersController)
 
-    const response = await resolveRequest(fetchRequest, handlers)
+  return async (request, reply) => {
+    const origin = `${request.protocol}://${request.host}`
+
+    if (webSocketMiddleware?.test(request.raw, origin)) {
+      reply.hijack()
+      webSocketMiddleware.upgrade(
+        request.raw,
+        request.raw.socket,
+        Buffer.alloc(0),
+        origin,
+      )
+      return
+    }
+
+    const fetchRequest = toFetchRequest(request.raw, { origin })
+    const response = await resolveRequest(fetchRequest, handlersController)
 
     if (!response) {
       return

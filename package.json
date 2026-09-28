@@ -87,8 +87,10 @@
     "@ossjs/release": "^0.11.2",
     "@types/express": "^5.0.6",
     "@types/node": "^22.20.4",
+    "@types/ws": "^8.18.1",
     "express": "^5.2.1",
     "fastify": "^5.12.5",
+    "graphql": "^17.0.2",
     "hono": "^4.13.9",
     "lint-staged": "^17.6.0",
     "msw": "https://pkg.pr.new/msw@2692",
@@ -99,5 +101,8 @@
     "tsdown": "^0.23.0",
     "typescript": "^7.0.2",
     "vitest": "5.0.2"
+  },
+  "dependencies": {
+    "ws": "^8.22.0"
   }
 }
