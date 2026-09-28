@@ -1,5 +1,5 @@
 import express from 'express'
-import { http, HttpResponse } from 'msw'
+import { http, HttpResponse, passthrough } from 'msw'
 import { createMiddleware } from '../../src/express'
 import { createTestServer, type TestServer } from '../utils'
 
@@ -17,6 +17,10 @@ app.use(
       throw new Error('Something went wrong.')
     }),
 
+    http.get('/passthrough', () => {
+      return passthrough()
+    }),
+
     http.get('/user', () => {
       return HttpResponse.json(
         { firstName: 'John' },
@@ -32,6 +36,10 @@ app.use(
 
 app.get('/book', (_req, res) => {
   res.status(200).send('book')
+})
+
+app.get('/passthrough', (_req, res) => {
+  res.status(200).send('original')
 })
 
 let server: TestServer
@@ -68,6 +76,13 @@ it('returns the mocked 204 with empty body', async () => {
 it('returns the original response given no matching request handler', async () => {
   const response = await fetch(server.url('/book'))
   await expect(response.text()).resolves.toBe('book')
+})
+
+it('returns the original response given a passthrough handler', async () => {
+  const response = await fetch(server.url('/passthrough'))
+
+  expect(response.status).toBe(200)
+  await expect(response.text()).resolves.toBe('original')
 })
 
 it('forwards promise rejections to error middleware', async () => {

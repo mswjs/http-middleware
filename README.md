@@ -1,6 +1,6 @@
 # `@mswjs/http-middleware`
 
-Spawn a standalone HTTP server from your [Mock Service Worker](https://github.com/mswjs/msw) request handlers, or apply them to an existing [Express](https://expressjs.com), [Hono](https://hono.dev), or [Fastify](https://fastify.dev) server using a middleware.
+Spawn a standalone HTTP server from your [Mock Service Worker](https://github.com/mswjs/msw) handlers, or apply them as middleware to an existing [Express](https://expressjs.com), [Hono](https://hono.dev), or [Fastify](https://fastify.dev) server.
 
 ## When to use this?
 
@@ -20,11 +20,14 @@ There are, however, use cases when this extension can be applicable:
 $ npm i @mswjs/http-middleware
 ```
 
-### Declare request handlers
+### Describe the network
+
+Next, describe the network you want using MSW handlers.
 
 ```js
 // src/mocks/handlers.js
-import { http, graphql, HttpResponse } from 'msw'
+import { http, HttpResponse } from 'msw/http'
+import { graphql } from 'msw/graphql'
 
 export const handlers = [
   http.post('/user', () => {
@@ -44,7 +47,7 @@ export const handlers = [
 
 > Learn more about writing [request handlers](https://mswjs.io/docs/concepts/request-handler).
 
-### Integration
+### Usage
 
 #### Standalone server
 

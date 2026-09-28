@@ -23,7 +23,7 @@ jobs:
 
       - uses: pnpm/action-setup@v4
         with:
-          version: 11.5.2
+          version: 11.27.1
 
       - name: Install dependencies
         run: pnpm install

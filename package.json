@@ -64,10 +64,7 @@
   "engines": {
     "node": ">=22"
   },
-  "packageManager": "pnpm@11.5.2",
-  "dependencies": {
-    "strict-event-emitter": "^0.5.1"
-  },
+  "packageManager": "pnpm@11.27.1",
   "peerDependencies": {
     "express": "^5.0.0",
     "fastify": "^5.0.0",
@@ -94,7 +91,7 @@
     "fastify": "^5.12.5",
     "hono": "^4.13.9",
     "lint-staged": "^17.6.0",
-    "msw": "^2.15.0",
+    "msw": "https://pkg.pr.new/msw@2692",
     "oxlint": "^1.85.0",
     "prettier": "^3.9.9",
     "publint": "^0.3.24",

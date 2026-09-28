@@ -1,5 +1,5 @@
 import fastify, { type FastifyInstance } from 'fastify'
-import { http, HttpResponse } from 'msw'
+import { http, HttpResponse, passthrough } from 'msw'
 import { createMiddleware } from '../../src/fastify'
 
 async function createApp(): Promise<FastifyInstance> {
@@ -16,6 +16,10 @@ async function createApp(): Promise<FastifyInstance> {
 
       http.get('/error', () => {
         throw new Error('Something went wrong.')
+      }),
+
+      http.get('/passthrough', () => {
+        return passthrough()
       }),
 
       http.get('/user', () => {
@@ -45,6 +49,10 @@ async function createApp(): Promise<FastifyInstance> {
 
   app.get('/book', () => {
     return 'book'
+  })
+
+  app.get('/passthrough', () => {
+    return 'original'
   })
 
   await app.listen({ port: 0, host: '127.0.0.1' })
@@ -92,6 +100,13 @@ it('returns the mocked 204 with empty body', async () => {
 it('returns the original response given no matching request handler', async () => {
   const response = await fetch(url('/book'))
   await expect(response.text()).resolves.toBe('book')
+})
+
+it('returns the original response given a passthrough handler', async () => {
+  const response = await fetch(url('/passthrough'))
+
+  expect(response.status).toBe(200)
+  await expect(response.text()).resolves.toBe('original')
 })
 
 it('forwards handler errors to the error handler', async () => {

@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { getRequestListener } from '@hono/node-server'
-import { http, HttpResponse } from 'msw'
+import { http, HttpResponse, passthrough } from 'msw'
 import { createMiddleware } from '../../src/hono'
 import { createTestServer, type TestServer } from '../utils'
 
@@ -18,6 +18,10 @@ app.use(
       throw new Error('Something went wrong.')
     }),
 
+    http.get('/passthrough', () => {
+      return passthrough()
+    }),
+
     http.get('/user', () => {
       return HttpResponse.json(
         { firstName: 'John' },
@@ -33,6 +37,10 @@ app.use(
 
 app.get('/book', (context) => {
   return context.text('book')
+})
+
+app.get('/passthrough', (context) => {
+  return context.text('original')
 })
 
 let server: TestServer
@@ -65,6 +73,13 @@ it('returns the mocked 204 with empty body', async () => {
 it('returns the original response given no matching request handler', async () => {
   const response = await fetch(server.url('/book'))
   await expect(response.text()).resolves.toBe('book')
+})
+
+it('returns the original response given a passthrough handler', async () => {
+  const response = await fetch(server.url('/passthrough'))
+
+  expect(response.status).toBe(200)
+  await expect(response.text()).resolves.toBe('original')
 })
 
 it('forwards handler errors to the error handler', async () => {

@@ -1,33 +1,22 @@
-import { handleRequest } from 'msw'
-import { Emitter } from 'strict-event-emitter'
-import type { LifeCycleEventsMap, RequestHandler } from 'msw'
+import type { RequestHandler } from 'msw'
+import { getResponse } from 'msw/utils/get-response'
+import { isPassthroughResponse } from 'msw/utils/passthrough'
 
-const emitter = new Emitter<LifeCycleEventsMap>()
-
-/**
- * Resolve the given Fetch API request against the request handlers.
- * Resolves with `undefined` if no handler produced a mocked response.
- */
-export function resolveRequest(
+export async function resolveRequest(
   request: Request,
   handlers: Array<RequestHandler>,
 ): Promise<Response | undefined> {
-  return handleRequest(
-    request,
-    crypto.randomUUID(),
-    handlers,
-    {
-      onUnhandledRequest: () => null,
-    },
-    emitter,
-    {
-      resolutionContext: {
-        /**
-         * @note Resolve relative request handler URLs against
-         * the server's origin (no relative URLs in Node.js).
-         */
-        baseUrl: new URL(request.url).origin,
-      },
-    },
-  )
+  const response = await getResponse(handlers, request, {
+    /**
+     * @note Resolve relative request handler URLs against
+     * the server's origin (no relative URLs in Node.js).
+     */
+    baseUrl: new URL(request.url).origin,
+  })
+
+  if (response == null || isPassthroughResponse(response)) {
+    return undefined
+  }
+
+  return response
 }
