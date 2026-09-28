@@ -1,7 +1,8 @@
-import { HttpServer } from '@open-draft/test-server/http'
+import express from 'express'
 import { HttpResponse, http } from 'msw'
 import { setupServer } from 'msw/node'
-import { createMiddleware } from '../src'
+import { createMiddleware } from '../../src/express'
+import { createTestServer, type TestServer } from '../utils'
 
 interface UserResponse {
   firstName: string
@@ -13,14 +14,14 @@ const handlers = [
   }),
 ]
 
-const httpServer = new HttpServer((app) => {
-  app.use(createMiddleware(...handlers))
-})
+const app = express()
+app.use(createMiddleware(...handlers))
 
 const server = setupServer(...handlers)
+let httpServer: TestServer
 
 beforeAll(async () => {
-  await httpServer.listen()
+  httpServer = await createTestServer(app)
   server.listen()
   vi.spyOn(console, 'warn').mockImplementation(() => {})
 })
@@ -37,7 +38,7 @@ afterAll(async () => {
 })
 
 it('returns the mocked response from the middleware', async () => {
-  const res = await fetch(httpServer.http.url('http://localhost/user'))
+  const res = await fetch(httpServer.url('http://localhost/user'))
   const json = await res.json()
 
   expect(json).toEqual<UserResponse>({ firstName: 'John' })

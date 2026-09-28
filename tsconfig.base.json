@@ -2,8 +2,8 @@
   "compilerOptions": {
     "strict": true,
     "noUncheckedIndexedAccess": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "moduleResolution": "node"
+    "target": "es2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext"
   }
 }

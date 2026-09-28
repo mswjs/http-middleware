@@ -1,9 +1,8 @@
 {
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    "target": "es6",
-    "module": "CommonJS",
-    "outDir": "./lib",
+    "rootDir": "./src",
+    "outDir": "./build",
     "declaration": true
   },
   "include": ["./src"],

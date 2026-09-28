@@ -3,7 +3,6 @@ name: release
 on:
   schedule:
     - cron: '0 23 * * *'
-
   workflow_dispatch:
 
 jobs:
@@ -19,13 +18,13 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 22
           always-auth: true
           registry-url: https://registry.npmjs.org
 
       - uses: pnpm/action-setup@v4
         with:
-          version: 8.15.6
+          version: 11.27.1
 
       - name: Setup Git
         run: |
@@ -35,7 +34,19 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: release
+      - name: Lint
+        run: pnpm lint
+
+      - name: Tests
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build
+
+      - name: Publint
+        run: pnpm publint
+
+      - name: Release
         run: pnpm release
         env:
           GITHUB_TOKEN: ${{ secrets.GH_ADMIN_TOKEN }}

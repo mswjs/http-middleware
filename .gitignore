@@ -1,7 +1,6 @@
 node_modules
-lib
+build
 *-error.log
 *.DS_Store
 ./package-lock.json
 .vscode
-.husky/_
