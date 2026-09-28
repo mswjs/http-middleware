@@ -1,15 +1,9 @@
 {
+  "extends": "../tsconfig.base.json",
   "compilerOptions": {
-    "outDir": "lib",
-    "target": "ES2015",
-    "module": "CommonJS",
-    "moduleResolution": "node",
-    "declaration": false,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "erasableSyntaxOnly": true
   },
-  "include": [
-    "./**/*.ts"
-  ],
-  "exclude": [],
+  "include": ["./**/*.ts"]
 }

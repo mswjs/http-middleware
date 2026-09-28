@@ -1,8 +1,48 @@
 {
+  "type": "module",
   "name": "@mswjs/http-middleware",
   "version": "0.10.3",
-  "main": "lib/index.js",
-  "typings": "lib/index.d.ts",
+  "exports": {
+    ".": "./build/index.mjs",
+    "./express": "./build/express.mjs",
+    "./hono": "./build/hono.mjs",
+    "./fastify": "./build/fastify.mjs",
+    "./package.json": "./package.json"
+  },
+  "typesVersions": {
+    "*": {
+      "express": [
+        "./build/express.d.mts"
+      ],
+      "hono": [
+        "./build/hono.d.mts"
+      ],
+      "fastify": [
+        "./build/fastify.d.mts"
+      ]
+    }
+  },
+  "scripts": {
+    "start": "tsdown --watch",
+    "test": "vitest",
+    "lint": "oxlint examples src test",
+    "publint": "publint",
+    "build": "tsdown",
+    "example:basic": "pnpm build && node examples/basic-server.ts",
+    "example:custom": "pnpm build && node examples/custom-server.ts",
+    "prepare": "simple-git-hooks",
+    "release": "release publish"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "npx lint-staged"
+  },
+  "lint-staged": {
+    "*.ts": [
+      "oxlint",
+      "prettier --write"
+    ]
+  },
+  "license": "MIT",
   "author": {
     "name": "Artem Zakharchenko",
     "url": "https://github.com/kettanaito"
@@ -13,60 +53,54 @@
       "url": "https://github.com/idolize"
     }
   ],
-  "license": "MIT",
-  "scripts": {
-    "start": "tsc -w -p ./tsconfig.src.json",
-    "test": "vitest",
-    "lint": "eslint \"{examples,src,test}/**/*.ts\"",
-    "clean": "rimraf ./lib",
-    "build": "pnpm clean && tsc -p ./tsconfig.src.json",
-    "example-build": "pnpm build && cd examples && rimraf ./lib && tsc && cp -R public lib/examples/public",
-    "example:basic": "pnpm example-build && node examples/lib/examples/basic-server.js",
-    "example:custom": "pnpm example-build && node examples/lib/examples/custom-server.js",
-    "release": "release publish",
-    "prepare": "husky install",
-    "prepublishOnly": "pnpm lint && pnpm test && pnpm build"
-  },
-  "lint-staged": {
-    "*.ts": [
-      "eslint"
-    ]
-  },
   "homepage": "https://mswjs.io",
   "repository": {
     "type": "git",
-    "url": "https://github.com/mswjs/http-middleware"
+    "url": "git+https://github.com/mswjs/http-middleware.git"
   },
   "files": [
-    "lib"
+    "build"
   ],
+  "engines": {
+    "node": ">=22"
+  },
+  "packageManager": "pnpm@11.5.2",
   "dependencies": {
-    "express": "^4.18.2",
     "strict-event-emitter": "^0.5.1"
   },
-  "devDependencies": {
-    "@open-draft/test-server": "0.4.x",
-    "@ossjs/release": "^0.8.1",
-    "@types/express": "^4.17.17",
-    "@types/node": "^20.8.7",
-    "@typescript-eslint/eslint-plugin": "^8.11.0",
-    "@typescript-eslint/parser": "^8.11.0",
-    "eslint": "^8.53.0",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-prettier": "^5.2.1",
-    "husky": "^7.0.4",
-    "lint-staged": "^11.2.6",
-    "msw": "^2.10.2",
-    "prettier": "^3.5.3",
-    "rimraf": "^6.0.1",
-    "typescript": "^5.8.3",
-    "vitest": "^3.2.3"
-  },
   "peerDependencies": {
-    "msw": ">=2.0.0"
+    "express": "^5.0.0",
+    "fastify": "^5.0.0",
+    "hono": "^4.0.0",
+    "msw": "^3.0.0"
   },
-  "engines": {
-    "node": ">=18"
+  "peerDependenciesMeta": {
+    "express": {
+      "optional": true
+    },
+    "fastify": {
+      "optional": true
+    },
+    "hono": {
+      "optional": true
+    }
   },
-  "packageManager": "pnpm@8.15.6"
+  "devDependencies": {
+    "@hono/node-server": "^2.1.1",
+    "@ossjs/release": "^0.11.2",
+    "@types/express": "^5.0.6",
+    "@types/node": "^22.20.4",
+    "express": "^5.2.1",
+    "fastify": "^5.12.5",
+    "hono": "^4.13.9",
+    "lint-staged": "^17.6.0",
+    "msw": "^2.15.0",
+    "oxlint": "^1.85.0",
+    "prettier": "^3.9.9",
+    "publint": "^0.3.24",
+    "simple-git-hooks": "^2.14.0",
+    "tsdown": "^0.23.0",
+    "typescript": "^7.0.2",
+    "vitest": "5.0.2"
+  }
 }

@@ -1,6 +1,6 @@
 # `@mswjs/http-middleware`
 
-Spawn an [Express](https://expressjs.com) server from your [Mock Service Worker](https://github.com/mswjs/msw) request handlers or apply them to an existing server using a middleware.
+Spawn a standalone HTTP server from your [Mock Service Worker](https://github.com/mswjs/msw) request handlers, or apply them to an existing [Express](https://expressjs.com), [Hono](https://hono.dev), or [Fastify](https://fastify.dev) server using a middleware.
 
 ## When to use this?
 
@@ -17,7 +17,7 @@ There are, however, use cases when this extension can be applicable:
 ### Install
 
 ```sh
-$ npm install @mswjs/http-middleware
+$ npm i @mswjs/http-middleware
 ```
 
 ### Declare request handlers
@@ -46,47 +46,87 @@ export const handlers = [
 
 ### Integration
 
-#### Option 1: Standalone server
+#### Standalone server
 
 ```js
 import { createServer } from '@mswjs/http-middleware'
 import { handlers } from './handlers'
 
-const httpServer = createServer(...handlers)
+const server = createServer(...handlers)
 
-httpServer.listen(9090)
+server.listen(9090)
 ```
 
-#### Option 2: Middleware
+#### Middleware
+
+This package exposes a middleware for each supported server framework via a dedicated export path:
+
+| Framework                        | Import path                      |
+| -------------------------------- | -------------------------------- |
+| [Express](https://expressjs.com) | `@mswjs/http-middleware/express` |
+| [Hono](https://hono.dev)         | `@mswjs/http-middleware/hono`    |
+| [Fastify](https://fastify.dev)   | `@mswjs/http-middleware/fastify` |
+
+The framework itself is an optional peer dependency. Install the one you use.
+
+#### Express
 
 ```js
-import { createMiddleware } from '@mswjs/http-middleware'
-import app from './app'
+import express from 'express'
+import { createMiddleware } from '@mswjs/http-middleware/express'
 import { handlers } from './handlers'
+
+const app = express()
+
+app.use(createMiddleware(...handlers))
+app.listen(9090)
+```
+
+#### Hono
+
+```js
+import { Hono } from 'hono'
+import { createMiddleware } from '@mswjs/http-middleware/hono'
+import { handlers } from './handlers'
+
+const app = new Hono()
 
 app.use(createMiddleware(...handlers))
 ```
 
+#### Fastify
+
+```js
+import fastify from 'fastify'
+import { createMiddleware } from '@mswjs/http-middleware/fastify'
+import { handlers } from './handlers'
+
+const app = fastify()
+
+app.addHook('onRequest', createMiddleware(...handlers))
+await app.listen({ port: 9090 })
+```
+
 ## API
 
-### `createServer(...handlers: RequestHandler[])`
+### `createMiddleware(...handlers: RequestHandler[])`
 
-Establishes a standalone Express server that uses the given request handlers to process all incoming requests.
+Available from every export path. Creates a framework-specific middleware that resolves incoming requests against the given request handlers. Requests that match no handler are passed through to the rest of your application.
 
 ```ts
 import { http, HttpResponse } from 'msw'
-import { createServer } from '@mswjs/http-middleware'
+import { createMiddleware } from '@mswjs/http-middleware/express'
 
-const httpServer = createServer(
-  http.get('/user', () => {
-    return HttpResponse.json({ firstName: 'John' })
-  }),
+app.use(
+  createMiddleware(
+    http.get('/user', () => {
+      return HttpResponse.json({ firstName: 'John' })
+    }),
+  ),
 )
-
-httpServer.listen(9090)
 ```
 
-Making a `GET http://localhost:9090/user` request returns the following response:
+Making a `GET /user` request returns the following response:
 
 ```sh
 200 OK
@@ -97,25 +137,25 @@ Content-Type: application/json
 }
 ```
 
-### `createMiddleware(...handlers: RequestHandler[])`
+- Express: `app.use(createMiddleware(...handlers))`
+- Hono: `app.use(createMiddleware(...handlers))`
+- Fastify: `app.addHook('onRequest', createMiddleware(...handlers))`
 
-Creates an Express middleware function that uses the given request handlers to process all incoming requests.
+### `createServer(...handlers: RequestHandler[])`
+
+Available from the package root. Creates a standalone Node.js [`http.Server`](https://nodejs.org/api/http.html#class-httpserver) that resolves all incoming requests against the given request handlers and responds with `404` to everything else. No server framework required.
 
 ```ts
 import { http, HttpResponse } from 'msw'
-import { createMiddleware } from '@mswjs/http-middleware'
+import { createServer } from '@mswjs/http-middleware'
 
-const app = express()
-
-app.use(
-  createMiddleware(
-    http.get('/user', () => {
-      return HttpResponse.json({ firstName: 'John' })
-    }),
-  ),
+const server = createServer(
+  http.get('/user', () => {
+    return HttpResponse.json({ firstName: 'John' })
+  }),
 )
 
-app.use(9090)
+server.listen(9090)
 ```
 
 ## Mentions
