@@ -1,5 +1,3 @@
-<br />
-
 <p align="center">
   <img src="media/serve-logo.svg" width="100" alt="The Serve library logo" />
 </p>
