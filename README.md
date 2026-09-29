@@ -5,11 +5,8 @@
 </p>
 
 <h1 align="center"><code>@msw/serve</code></h1>
-<center>
 
-Spawn a standalone HTTP server from your [Mock Service Worker](https://github.com/mswjs/msw) handlers, or apply them as middleware to an existing [Express](https://expressjs.com), [Hono](https://hono.dev), or [Fastify](https://fastify.dev) server.
-
-</center>
+Spawn a standalone HTTP server from your [Mock Service Worker](https://github.com/mswjs/msw) handlers, or apply them as middleware to an existing [Express](https://expressjs.com), [Hono](https://hono.dev), or [Fastify](https://fastify.dev) servers.
 
 ## When to use this?
 
